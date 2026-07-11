@@ -69,12 +69,6 @@ const CodeWorkspace = () => {
     }
   };
 
-  if (isLoading || !question) {
-    return <div className="h-screen flex items-center justify-center bg-[#1e1e1e]"><Loader text="Loading Workspace..." /></div>;
-  }
-
-  const activeFile = files[activeFileIndex];
-
   // Map files for Sandpack
   const sandpackFiles = useMemo(() => {
     const spFiles: Record<string, string> = {};
@@ -120,6 +114,12 @@ const CodeWorkspace = () => {
   }, [files]);
 
   const hasFrontendFiles = Object.keys(sandpackFiles).length > 0;
+
+  if (isLoading || !question) {
+    return <div className="h-screen flex items-center justify-center bg-[#1e1e1e]"><Loader text="Loading Workspace..." /></div>;
+  }
+
+  const activeFile = files[activeFileIndex];
 
   return (
     <div className="h-screen flex flex-col bg-[#1e1e1e] text-gray-300 font-sans">
