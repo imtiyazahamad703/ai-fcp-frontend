@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/useAuthStore';
 import { Loader } from './components/common/Loader';
 import Login from './pages/Login';
+import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
 import AdminDashboard from './pages/AdminDashboard';
 import LearnerDashboard from './pages/LearnerDashboard';
 import CodeWorkspace from './pages/CodeWorkspace';
@@ -29,6 +31,26 @@ function App() {
               <Navigate to={user?.role === 'admin' ? '/admin' : '/dashboard'} replace />
             ) : (
               <Login />
+            )
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            isAuthenticated ? (
+              <Navigate to={user?.role === 'admin' ? '/admin' : '/dashboard'} replace />
+            ) : (
+              <Register />
+            )
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            isAuthenticated ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <ForgotPassword />
             )
           }
         />

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { IUser } from '../types';
 import { getToken, removeToken, setToken } from '../services/axios';
+import { authService } from '../services/auth.service';
 
 // ============================
 // Auth Store
@@ -52,13 +53,27 @@ export const useAuthStore = create<AuthState>((set) => ({
   initialize: () => {
     const token = getToken();
     if (token) {
-      // Token exists but we don't have user info yet
-      // In production, you'd validate the token with the backend
-      set({
-        token,
-        isAuthenticated: true,
-        isLoading: false,
-      });
+      // Token exists — validate it by fetching user profile from backend
+      authService
+        .getProfile()
+        .then((user) => {
+          set({
+            token,
+            user,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+        })
+        .catch(() => {
+          // Token is invalid or expired — clear it
+          removeToken();
+          set({
+            token: null,
+            user: null,
+            isAuthenticated: false,
+            isLoading: false,
+          });
+        });
     } else {
       set({ isLoading: false });
     }

@@ -1,5 +1,5 @@
 import { api, setToken, removeToken } from './axios';
-import type { IAuthResponse, ILoginRequest, IRegisterRequest } from '../types';
+import type { IAuthResponse, ILoginRequest, IRegisterRequest, IUser } from '../types';
 
 // ============================
 // Auth API Service
@@ -10,26 +10,39 @@ export const authService = {
    * Login with email and password.
    */
   login: async (credentials: ILoginRequest): Promise<IAuthResponse> => {
-    const response = await api.post<IAuthResponse>('/auth/login', credentials);
-    const authData = response.data;
+    const response = await api.post<{ token: string; user: IUser }>(
+      '/auth/login',
+      credentials,
+    );
 
-    // Store token
-    setToken(authData.token);
+    const { token, user } = response.data;
+    setToken(token);
 
-    return authData;
+    return { token, user };
   },
 
   /**
    * Register a new user account.
    */
   register: async (data: IRegisterRequest): Promise<IAuthResponse> => {
-    const response = await api.post<IAuthResponse>('/auth/register', data);
-    const authData = response.data;
+    const response = await api.post<{ token: string; user: IUser }>(
+      '/auth/register',
+      data,
+    );
 
-    // Store token
-    setToken(authData.token);
+    const { token, user } = response.data;
+    setToken(token);
 
-    return authData;
+    return { token, user };
+  },
+
+  /**
+   * Fetch the current authenticated user's profile.
+   * Used to validate token on app initialization.
+   */
+  getProfile: async (): Promise<IUser> => {
+    const response = await api.get<{ user: IUser }>('/auth/me');
+    return response.data.user;
   },
 
   /**
