@@ -1533,3 +1533,20 @@ code {
     grid-template-columns: 1fr 1fr;
   }
 }
+.sp-layout { height: 100% !important; min-height: 100% !important; flex: 1 !important; }
+
+/* Fix Sandpack Ghost Scrollbars */
+.sp-layout {
+  overflow: hidden !important;
+}
+.sp-preview {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+}
+.sp-preview-iframe {
+  flex: 1 !important;
+  height: auto !important;
+  min-height: 0 !important;
+}
+\n.sp-layout { overflow: hidden !important; }\n.sp-preview { overflow: hidden !important; }

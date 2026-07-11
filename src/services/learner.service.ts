@@ -39,4 +39,24 @@ export const learnerService = {
     });
     return response.data;
   },
+
+  /**
+   * Dynamically execute an endpoint with payload (for Fullstack UI testing)
+   */
+  executeEndpoint: async (
+    questionId: string,
+    files: { filename: string; content: string }[],
+    method: string,
+    endpoint: string,
+    body: any
+  ): Promise<{ message: string; status: 'pass' | 'fail'; output: any }> => {
+    const response = await api.post<{ message: string; status: 'pass' | 'fail'; output: any }>('/execution/run-endpoint', {
+      questionId,
+      files,
+      method,
+      endpoint,
+      body,
+    });
+    return response.data;
+  },
 };

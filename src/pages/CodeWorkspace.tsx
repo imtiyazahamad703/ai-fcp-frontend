@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import { toast } from 'react-hot-toast';
-import { SandpackProvider, SandpackPreview } from '@codesandbox/sandpack-react';
+import { SandpackProvider, SandpackPreview, SandpackLayout } from '@codesandbox/sandpack-react';
 import { learnerService } from '../services/learner.service';
 import type { IQuestion, IStarterFile } from '../types';
 import { Loader } from '../components/common/Loader';
@@ -12,14 +12,119 @@ import { Button } from '../components/common/Button';
 // Code Workspace Page
 // ============================
 
+// ---- helpers ----
+
+/** Build a default userInput state from the question's inputSchema */
+function buildDefaultInput(schema: IInputField[]): Record<string, any> {
+  const result: Record<string, any> = {};
+  for (const field of schema) {
+    if (field.defaultValue !== undefined && field.defaultValue !== '') {
+      result[field.name] =
+        field.type === 'number' ? Number(field.defaultValue) : field.defaultValue;
+    } else if (field.type === 'number') {
+      result[field.name] = 0;
+    } else if (field.type === 'boolean') {
+      result[field.name] = false;
+    } else if (field.type === 'select' && field.options?.length) {
+      result[field.name] = field.options[0];
+    } else {
+      result[field.name] = '';
+    }
+  }
+  return result;
+}
+
+/** Coerce a string from an input element to the correct type */
+function coerceValue(raw: string, type: IInputField['type']): any {
+  if (type === 'number') return raw === '' ? 0 : Number(raw);
+  if (type === 'boolean') return raw === 'true';
+  return raw;
+}
+
+// ---- sub-component: dynamic input panel ----
+
+interface TestInputPanelProps {
+  schema: IInputField[];
+  values: Record<string, any>;
+  onChange: (name: string, value: any) => void;
+}
+
+const TestInputPanel = ({ schema, values, onChange }: TestInputPanelProps) => {
+  if (!schema || schema.length === 0) {
+    return (
+      <div className="p-4 text-xs text-gray-500 italic">
+        No input fields defined for this question.
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 space-y-4">
+      {schema.map((field) => (
+        <div key={field.name}>
+          <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+            {field.label}
+            <span className="ml-2 font-normal normal-case text-gray-600">({field.type})</span>
+          </label>
+
+          {field.type === 'boolean' ? (
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => onChange(field.name, true)}
+                className={`px-3 py-1.5 text-xs rounded border transition-all ${values[field.name] === true
+                  ? 'bg-blue-600 border-blue-500 text-white'
+                  : 'bg-[#2d2d2d] border-[#444] text-gray-400 hover:border-blue-500'
+                  }`}
+              >
+                true
+              </button>
+              <button
+                onClick={() => onChange(field.name, false)}
+                className={`px-3 py-1.5 text-xs rounded border transition-all ${values[field.name] === false
+                  ? 'bg-blue-600 border-blue-500 text-white'
+                  : 'bg-[#2d2d2d] border-[#444] text-gray-400 hover:border-blue-500'
+                  }`}
+              >
+                false
+              </button>
+            </div>
+          ) : field.type === 'select' ? (
+            <select
+              value={values[field.name] ?? ''}
+              onChange={(e) => onChange(field.name, e.target.value)}
+              className="w-full bg-[#2d2d2d] border border-[#444] rounded px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-blue-500 transition-colors"
+            >
+              {field.options?.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              type={field.type === 'number' ? 'number' : 'text'}
+              value={values[field.name] ?? ''}
+              placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}...`}
+              onChange={(e) => onChange(field.name, coerceValue(e.target.value, field.type))}
+              className="w-full bg-[#2d2d2d] border border-[#444] rounded px-3 py-2 text-sm text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500 transition-colors font-mono"
+            />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// ---- main workspace component ----
+
 const CodeWorkspace = () => {
   const { questionId } = useParams<{ questionId: string }>();
   const navigate = useNavigate();
-  
+
   const [question, setQuestion] = useState<IQuestion | null>(null);
   const [files, setFiles] = useState<IStarterFile[]>([]);
   const [activeFileIndex, setActiveFileIndex] = useState(0);
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [output, setOutput] = useState<{ status: string; message: string } | null>(null);
@@ -40,6 +145,30 @@ const CodeWorkspace = () => {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    const handleMessage = async (event: MessageEvent) => {
+      if (event.data?.type === 'AXIOS_REQUEST') {
+        try {
+          if (!questionId) throw new Error("Question ID is missing");
+          const result = await learnerService.executeEndpoint(questionId, files, event.data.method, event.data.url, event.data.data);
+          
+          if (result.status === 'fail') {
+            throw new Error(result.output);
+          }
+          
+          const targetWindow = (event.source as WindowProxy) || window;
+          targetWindow.postMessage({ type: 'AXIOS_RESPONSE', id: event.data.id, data: result.output }, '*');
+        } catch (e: any) {
+          const targetWindow = (event.source as WindowProxy) || window;
+          targetWindow.postMessage({ type: 'AXIOS_RESPONSE', id: event.data.id, error: e.message || 'Execution failed' }, '*');
+        }
+      }
+    };
+    
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [files, questionId]);
 
   const handleEditorChange = (value: string | undefined) => {
     if (value === undefined) return;
@@ -79,10 +208,10 @@ const CodeWorkspace = () => {
       if (f.filename.startsWith('frontend/src/')) {
         const name = f.filename.replace('frontend/src', '');
         spFiles[name] = f.content;
-        
-        if (!mainComponentFile && f.filename.endsWith('.tsx') && !f.filename.includes('App.tsx')) {
+
+        if (!mainComponentFile && f.filename.endsWith('.tsx') && name !== '/App.tsx' && name !== '/index.tsx') {
           mainComponentFile = name;
-          const match = f.content.match(/export const (\w+)/);
+          const match = f.content.match(/export (?:const|function|class) (\w+)/);
           if (match) mainComponentName = match[1];
         }
       }
@@ -90,14 +219,13 @@ const CodeWorkspace = () => {
 
     if (!spFiles['/App.tsx'] && mainComponentFile) {
       const isDefault = !spFiles[mainComponentFile].includes(`export const ${mainComponentName}`);
-      const importStatement = isDefault 
+      const importStatement = isDefault
         ? `import ${mainComponentName} from '.${mainComponentFile.replace('.tsx', '')}';`
         : `import { ${mainComponentName} } from '.${mainComponentFile.replace('.tsx', '')}';`;
 
       spFiles['/App.tsx'] = `
         import React from 'react';
         ${importStatement}
-        import './styles.css';
         
         export default function App() {
           return (
@@ -107,9 +235,60 @@ const CodeWorkspace = () => {
           );
         }
       `;
-      spFiles['/styles.css'] = `body { font-family: sans-serif; background: #fff; margin: 0; }`;
     }
 
+    if (!spFiles['/styles.css']) {
+      spFiles['/styles.css'] = `body { font-family: sans-serif; background: #fff; margin: 0; color: #000; }`;
+    }
+
+    spFiles['/index.tsx'] = `
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import './styles.css';
+
+// --- INJECT AXIOS MOCK FOR FULLSTACK DSA ---
+import axios from 'axios';
+
+const createMockMethod = (method) => async (url, configOrData, config) => {
+   return new Promise((resolve, reject) => {
+      const id = Math.random().toString();
+      let data = configOrData;
+      
+      // Handle axios.get(url, config) vs axios.post(url, data, config)
+      if (method === 'GET' || method === 'DELETE') {
+         data = configOrData?.params || configOrData;
+      }
+      
+      window.parent.postMessage({ type: 'AXIOS_REQUEST', id, url, data, method }, '*');
+      const listener = (event) => {
+         if (event.data.type === 'AXIOS_RESPONSE' && event.data.id === id) {
+            window.removeEventListener('message', listener);
+            if (event.data.error) reject(new Error(event.data.error));
+            else resolve({ data: event.data.data, status: 200 });
+         }
+      };
+      window.addEventListener('message', listener);
+   });
+};
+
+axios.post = createMockMethod('POST');
+axios.get = createMockMethod('GET');
+axios.put = createMockMethod('PUT');
+axios.delete = createMockMethod('DELETE');
+// ---------------------------------------------
+
+import * as AppModule from './App';
+const AppComp = AppModule.default || Object.values(AppModule)[0] || (() => <div>No valid component exported from App.tsx</div>);
+
+const root = createRoot(document.getElementById('root')!);
+root.render(
+  <React.StrictMode>
+    <AppComp />
+  </React.StrictMode>
+);
+    `;
+
+    console.log("Sandpack Files Generated:", spFiles);
     return spFiles;
   }, [files]);
 
@@ -130,11 +309,10 @@ const CodeWorkspace = () => {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
           </button>
           <span className="font-bold text-white">{question.title}</span>
-          <span className={`text-xs px-2 py-0.5 rounded font-bold uppercase tracking-wider ${
-            question.difficulty === 'easy' ? 'bg-green-500/10 text-green-400' :
+          <span className={`text-xs px-2 py-0.5 rounded font-bold uppercase tracking-wider ${question.difficulty === 'easy' ? 'bg-green-500/10 text-green-400' :
             question.difficulty === 'medium' ? 'bg-yellow-500/10 text-yellow-400' :
-            'bg-red-500/10 text-red-400'
-          }`}>{question.difficulty}</span>
+              'bg-red-500/10 text-red-400'
+            }`}>{question.difficulty}</span>
         </div>
         <div>
           <Button variant="primary" onClick={handleSubmit} isLoading={isSubmitting}>
@@ -151,7 +329,7 @@ const CodeWorkspace = () => {
             <div className="prose prose-invert prose-sm max-w-none">
               <pre className="whitespace-pre-wrap font-sans text-gray-300">{question.description}</pre>
             </div>
-            
+
             <h3 className="text-lg font-bold text-white mt-10 mb-4 border-b border-[#333] pb-2">Test Cases</h3>
             <ul className="space-y-4">
               {question.testCases?.map((tc, idx) => (
@@ -171,11 +349,10 @@ const CodeWorkspace = () => {
               <button
                 key={file.filename}
                 onClick={() => setActiveFileIndex(idx)}
-                className={`px-4 py-2.5 text-sm font-medium border-t-2 transition-colors flex items-center gap-2 ${
-                  idx === activeFileIndex 
-                    ? 'border-blue-500 bg-[#1e1e1e] text-blue-400' 
-                    : 'border-transparent text-gray-500 hover:text-gray-300 hover:bg-[#2d2d2d]'
-                }`}
+                className={`px-4 py-2.5 text-sm font-medium border-t-2 transition-colors flex items-center gap-2 ${idx === activeFileIndex
+                  ? 'border-blue-500 bg-[#1e1e1e] text-blue-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-300 hover:bg-[#2d2d2d]'
+                  }`}
               >
                 {file.filename}
                 {!file.editable && (
@@ -204,29 +381,50 @@ const CodeWorkspace = () => {
                 }}
               />
             </div>
-            
+
             {hasFrontendFiles && (
-              <div className="flex-1 flex flex-col bg-white">
-                <div className="px-4 py-2 bg-[#252526] border-b border-[#333] flex justify-between items-center text-xs font-bold tracking-wider text-gray-400 uppercase">
+              <div className="flex flex-col flex-1 h-full bg-white">
+                <div className="bg-gray-800 text-white text-xs px-2 py-1 uppercase">
                   <span>Live Preview</span>
                 </div>
-                <div className="flex-1 overflow-hidden relative">
-                  <SandpackProvider 
-                    template="react-ts" 
+                <div className="flex-1 overflow-hidden relative flex flex-col">
+                  <style>{`
+                    .sp-wrapper, .sp-layout {
+                      height: 100% !important;
+                      min-height: 100% !important;
+                      flex: 1 !important;
+                      border-radius: 0 !important;
+                      border: none !important;
+                    }
+                    .sp-preview-container, .sp-preview-iframe {
+                      height: 100% !important;
+                      min-height: 100% !important;
+                      flex: 1 !important;
+                    }
+                  `}</style>
+                  <SandpackProvider
+                    template="react-ts"
                     files={sandpackFiles}
                     theme="light"
+                    customSetup={{
+                      dependencies: {
+                        "axios": "^1.6.0"
+                      }
+                    }}
                   >
-                    <SandpackPreview 
-                      showOpenInCodeSandbox={false}
-                      showRefreshButton={true}
-                      style={{ height: '100%' }}
-                    />
+                    <SandpackLayout style={{ flex: 1, height: '100%', minHeight: '100%', width: '100%', borderRadius: 0, border: 'none' }}>
+                      <SandpackPreview
+                        showOpenInCodeSandbox={false}
+                        showRefreshButton={true}
+                        style={{ height: '100%', flex: 1 }}
+                      />
+                    </SandpackLayout>
                   </SandpackProvider>
                 </div>
               </div>
             )}
           </div>
-
+          a
           {/* Output Terminal */}
           <div className="h-64 border-t border-[#333] bg-[#0d0d0d] flex flex-col">
             <div className="px-4 py-2 bg-[#252526] border-b border-[#333] flex justify-between items-center text-xs font-bold tracking-wider text-gray-400 uppercase">
