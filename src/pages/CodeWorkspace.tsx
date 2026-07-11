@@ -12,7 +12,7 @@ import { Button } from '../components/common/Button';
 // ============================
 
 const CodeWorkspace = () => {
-  const { id } = useParams<{ id: string }>();
+  const { questionId } = useParams<{ questionId: string }>();
   const navigate = useNavigate();
   
   const [question, setQuestion] = useState<IQuestion | null>(null);
@@ -24,8 +24,8 @@ const CodeWorkspace = () => {
   const [output, setOutput] = useState<{ status: string; message: string } | null>(null);
 
   useEffect(() => {
-    if (id) fetchQuestion(id);
-  }, [id]);
+    if (questionId) fetchQuestion(questionId);
+  }, [questionId]);
 
   const fetchQuestion = async (qId: string) => {
     try {
@@ -48,12 +48,12 @@ const CodeWorkspace = () => {
   };
 
   const handleSubmit = async () => {
-    if (!id || !files.length) return;
+    if (!questionId || !files.length) return;
     setIsSubmitting(true);
     setOutput(null);
 
     try {
-      const result = await learnerService.submitExecution(id, files);
+      const result = await learnerService.submitExecution(questionId, files);
       setOutput({
         status: result.status,
         message: result.output,
