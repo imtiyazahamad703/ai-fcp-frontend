@@ -6,6 +6,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminQuestions from './pages/AdminQuestions';
+import AdminQuestionEditor from './pages/AdminQuestionEditor';
 import LearnerDashboard from './pages/LearnerDashboard';
 import CodeWorkspace from './pages/CodeWorkspace';
 
@@ -61,6 +63,26 @@ function App() {
           element={
             isAuthenticated && user?.role === 'admin' ? (
               <AdminDashboard />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
+          path="/admin/questions"
+          element={
+            isAuthenticated && user?.role === 'admin' ? (
+              <AdminQuestions />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
+          path="/admin/questions/:id"
+          element={
+            isAuthenticated && user?.role === 'admin' ? (
+              <AdminQuestionEditor />
             ) : (
               <Navigate to="/login" replace />
             )
