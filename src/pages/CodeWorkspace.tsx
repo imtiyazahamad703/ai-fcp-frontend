@@ -118,6 +118,7 @@ const TestInputPanel = ({ schema, values, onChange }: TestInputPanelProps) => {
 // ---- main workspace component ----
 
 const handleEditorBeforeMount = (monaco: any) => {
+  // 1. Configure compiler options for React/JSX and Node module resolution
   monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
     jsx: monaco.languages.typescript.JsxEmit.React,
     jsxFactory: 'React.createElement',
@@ -125,6 +126,16 @@ const handleEditorBeforeMount = (monaco: any) => {
     allowNonTsExtensions: true,
     allowJs: true,
     target: monaco.languages.typescript.ScriptTarget.Latest,
+    moduleResolution: monaco.languages.typescript.ModuleResolutionKind.NodeJs,
+  });
+
+  // 2. Ignore missing module errors (e.g. Cannot find module '@nestjs/common')
+  // Code 2307: Cannot find module '...'
+  // Code 2792: Cannot find module '...'. Did you mean to set the 'moduleResolution' option to 'nodenext'...
+  monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+    noSemanticValidation: false,
+    noSyntaxValidation: false,
+    diagnosticCodesToIgnore: [2307, 2792],
   });
 };
 
