@@ -5,13 +5,14 @@ import { Input } from '../components/common/Input';
 import { Button } from '../components/common/Button';
 import { useAuthStore } from '../store/useAuthStore';
 import { authService } from '../services/auth.service';
-import { validateLoginForm } from '../utils/validators';
+import { validateRegisterForm } from '../utils/validators';
 
 // ============================
-// Login Page
+// Register Page
 // ============================
 
-const Login = () => {
+const Register = () => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -25,7 +26,7 @@ const Login = () => {
     setApiError('');
 
     // Validate
-    const validationErrors = validateLoginForm(email, password);
+    const validationErrors = validateRegisterForm(name, email, password);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
@@ -35,18 +36,12 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const authData = await authService.login({ email, password });
+      const authData = await authService.register({ name, email, password });
       setAuth(authData.token, authData.user);
-
-      // Navigate based on role
-      if (authData.user.role === 'admin') {
-        navigate('/admin');
-      } else {
-        navigate('/dashboard');
-      }
+      navigate('/dashboard');
     } catch (error: unknown) {
       const err = error as { message?: string };
-      setApiError(err?.message || 'Login failed. Please try again.');
+      setApiError(err?.message || 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -54,9 +49,9 @@ const Login = () => {
 
   return (
     <AuthLayout>
-      <form onSubmit={handleSubmit} className="auth-form" id="login-form">
-        <h2 className="auth-form-title">Welcome Back</h2>
-        <p className="auth-form-subtitle">Sign in to continue your coding journey</p>
+      <form onSubmit={handleSubmit} className="auth-form" id="register-form">
+        <h2 className="auth-form-title">Create Account</h2>
+        <p className="auth-form-subtitle">Join the coding practice platform</p>
 
         {apiError && (
           <div className="auth-error animate-fade-in">
@@ -68,6 +63,21 @@ const Login = () => {
             <span>{apiError}</span>
           </div>
         )}
+
+        <Input
+          label="Full Name"
+          type="text"
+          placeholder="John Doe"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          error={errors.name}
+          icon={
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          }
+        />
 
         <Input
           label="Email"
@@ -91,6 +101,7 @@ const Login = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           error={errors.password}
+          helperText="Min 8 chars, 1 uppercase, 1 lowercase, 1 number"
           icon={
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
@@ -99,10 +110,6 @@ const Login = () => {
           }
         />
 
-        <div className="auth-forgot-link">
-          <Link to="/forgot-password" className="auth-link">Forgot Password?</Link>
-        </div>
-
         <Button
           type="submit"
           variant="primary"
@@ -110,16 +117,16 @@ const Login = () => {
           isLoading={isLoading}
           className="auth-submit-btn"
         >
-          Sign In
+          Create Account
         </Button>
 
         <p className="auth-footer-text">
-          Don't have an account?{' '}
-          <Link to="/register" className="auth-link">Create Account</Link>
+          Already have an account?{' '}
+          <Link to="/login" className="auth-link">Sign In</Link>
         </p>
       </form>
     </AuthLayout>
   );
 };
 
-export default Login;
+export default Register;

@@ -798,6 +798,53 @@ code {
   margin-top: var(--space-2);
 }
 
+.auth-footer-text {
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--color-text-tertiary);
+}
+
+.auth-link {
+  color: var(--color-primary-400);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.auth-link:hover {
+  color: var(--color-primary-300);
+}
+
+.auth-forgot-link {
+  text-align: right;
+  margin-top: calc(var(--space-2) * -1);
+}
+
+.auth-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.auth-success-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-5);
+}
+
+.auth-success-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-full);
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--color-success-500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* ============================
    Admin Layout
    ============================ */
