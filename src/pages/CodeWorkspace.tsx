@@ -117,6 +117,17 @@ const TestInputPanel = ({ schema, values, onChange }: TestInputPanelProps) => {
 
 // ---- main workspace component ----
 
+const handleEditorBeforeMount = (monaco: any) => {
+  monaco.languages.typescript.typescriptDefaults.setCompilerOptions({
+    jsx: monaco.languages.typescript.JsxEmit.React,
+    jsxFactory: 'React.createElement',
+    reactNamespace: 'React',
+    allowNonTsExtensions: true,
+    allowJs: true,
+    target: monaco.languages.typescript.ScriptTarget.Latest,
+  });
+};
+
 const CodeWorkspace = () => {
   const { questionId } = useParams<{ questionId: string }>();
   const navigate = useNavigate();
@@ -434,6 +445,7 @@ root.render(
                 theme="vs-dark"
                 value={activeFile?.content || ''}
                 onChange={handleEditorChange}
+                beforeMount={handleEditorBeforeMount}
                 options={{
                   readOnly: !activeFile?.editable,
                   minimap: { enabled: false },
