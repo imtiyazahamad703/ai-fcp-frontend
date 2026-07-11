@@ -27,13 +27,31 @@ export const learnerService = {
   },
 
   /**
-   * Submit code for execution.
+   * Submit code for execution / evaluation against test cases.
    */
   submitExecution: async (
     questionId: string,
     files: { filename: string; content: string }[]
-  ): Promise<{ message: string; status: 'pass' | 'fail'; output: string }> => {
-    const response = await api.post<{ message: string; status: 'pass' | 'fail'; output: string }>('/execution/submit', {
+  ): Promise<{
+    message: string;
+    status: 'pass' | 'fail';
+    output?: string;
+    evaluation?: {
+      summary: { total: number; passed: number; failed: number };
+      results: {
+        index: number;
+        description: string;
+        passed: boolean;
+        input?: any;
+        expectedOutput?: any;
+        actualOutput?: any;
+        executionTimeMs: number;
+        error?: string;
+        visible: boolean;
+      }[];
+    };
+  }> => {
+    const response = await api.post('/execution/submit', {
       questionId,
       files,
     });

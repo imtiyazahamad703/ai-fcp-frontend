@@ -128,6 +128,15 @@ const CodeWorkspace = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [output, setOutput] = useState<{ status: string; message: string } | null>(null);
+  const [evaluation, setEvaluation] = useState<{
+    summary: { total: number; passed: number; failed: number };
+    results: {
+      index: number; description: string; passed: boolean;
+      input?: any; expectedOutput?: any; actualOutput?: any;
+      executionTimeMs: number; error?: string; visible: boolean;
+    }[];
+  } | null>(null);
+  const [selectedTestCase, setSelectedTestCase] = useState<number>(0);
 
   useEffect(() => {
     if (questionId) fetchQuestion(questionId);
@@ -191,13 +200,26 @@ const CodeWorkspace = () => {
     if (!questionId || !files.length) return;
     setIsSubmitting(true);
     setOutput(null);
+    setEvaluation(null);
+    setSelectedTestCase(0);
 
     try {
       const result = await learnerService.submitExecution(questionId, files);
-      setOutput({
-        status: result.status,
-        message: result.output,
-      });
+      
+      if (result.evaluation) {
+        // New structured evaluation response
+        setEvaluation(result.evaluation);
+        setOutput({
+          status: result.status,
+          message: `${result.evaluation.summary.passed}/${result.evaluation.summary.total} test cases passed`,
+        });
+      } else {
+        // Legacy single-output response
+        setOutput({
+          status: result.status,
+          message: result.output || 'No output',
+        });
+      }
     } catch (err: any) {
       setOutput({
         status: 'fail',
@@ -443,24 +465,109 @@ root.render(
               </div>
             )}
           </div>
-          a
-          {/* Output Terminal */}
-          <div className="h-64 border-t border-[#333] bg-[#0d0d0d] flex flex-col">
+
+          {/* Output / Test Results Panel */}
+          <div className="h-72 border-t border-[#333] bg-[#0d0d0d] flex flex-col">
             <div className="px-4 py-2 bg-[#252526] border-b border-[#333] flex justify-between items-center text-xs font-bold tracking-wider text-gray-400 uppercase">
-              <span>Execution Output</span>
+              <span>{evaluation ? 'Test Results' : 'Execution Output'}</span>
               {output && (
-                <span className={`px-2 py-0.5 rounded ${output.status === 'pass' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                  {output.status === 'pass' ? 'Passed' : 'Failed'}
-                </span>
+                <div className="flex items-center gap-3">
+                  {evaluation && (
+                    <span className="font-mono normal-case text-gray-300">
+                      {evaluation.summary.passed}/{evaluation.summary.total} passed
+                    </span>
+                  )}
+                  <span className={`px-2 py-0.5 rounded ${output.status === 'pass' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                    {output.status === 'pass' ? 'Accepted' : 'Failed'}
+                  </span>
+                </div>
               )}
             </div>
-            <div className="flex-1 p-4 overflow-y-auto font-mono text-sm">
+
+            <div className="flex-1 flex overflow-hidden">
               {!output ? (
-                <span className="text-gray-600">Click 'Submit Code' to run your solution against the test cases...</span>
+                <div className="flex-1 flex items-center justify-center">
+                  <span className="text-gray-600 text-sm">Click 'Submit Code' to run your solution against the test cases...</span>
+                </div>
+              ) : evaluation ? (
+                /* ---- LeetCode-style Test Case Results ---- */
+                <>
+                  {/* Left: Test case tabs */}
+                  <div className="w-48 border-r border-[#333] overflow-y-auto bg-[#1a1a1a]">
+                    {evaluation.results.map((tc, idx) => (
+                      <button
+                        key={tc.index}
+                        onClick={() => setSelectedTestCase(idx)}
+                        className={`w-full px-3 py-2.5 text-left text-xs flex items-center gap-2 border-b border-[#222] transition-colors ${
+                          idx === selectedTestCase
+                            ? 'bg-[#2d2d2d] text-white'
+                            : 'text-gray-500 hover:bg-[#252526] hover:text-gray-300'
+                        }`}
+                      >
+                        <span className={`w-2 h-2 rounded-full flex-shrink-0 ${tc.passed ? 'bg-green-500' : 'bg-red-500'}`} />
+                        <span className="truncate">Case {tc.index}</span>
+                        <span className="ml-auto text-[10px] text-gray-600">{tc.executionTimeMs}ms</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Right: Selected test case details */}
+                  <div className="flex-1 overflow-y-auto p-4 font-mono text-xs space-y-3">
+                    {(() => {
+                      const tc = evaluation.results[selectedTestCase];
+                      if (!tc) return null;
+                      return (
+                        <>
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className={`text-sm font-bold ${tc.passed ? 'text-green-400' : 'text-red-400'}`}>
+                              {tc.passed ? '✓ Passed' : '✗ Failed'}
+                            </span>
+                            <span className="text-gray-600">— {tc.description}</span>
+                          </div>
+
+                          {tc.error && (
+                            <div className="bg-red-500/10 border border-red-500/30 rounded p-3 text-red-400">
+                              <div className="text-[10px] uppercase tracking-wider text-red-500 mb-1 font-bold">Runtime Error</div>
+                              {tc.error}
+                            </div>
+                          )}
+
+                          {tc.visible ? (
+                            <>
+                              <div>
+                                <div className="text-[10px] uppercase tracking-wider text-gray-500 mb-1 font-bold">Input</div>
+                                <div className="bg-[#1e1e1e] border border-[#333] rounded p-2.5 text-gray-300">
+                                  <pre className="whitespace-pre-wrap">{typeof tc.input === 'object' ? JSON.stringify(tc.input, null, 2) : String(tc.input)}</pre>
+                                </div>
+                              </div>
+                              <div>
+                                <div className="text-[10px] uppercase tracking-wider text-gray-500 mb-1 font-bold">Expected Output</div>
+                                <div className="bg-[#1e1e1e] border border-[#333] rounded p-2.5 text-green-400">
+                                  <pre className="whitespace-pre-wrap">{typeof tc.expectedOutput === 'object' ? JSON.stringify(tc.expectedOutput, null, 2) : String(tc.expectedOutput)}</pre>
+                                </div>
+                              </div>
+                              <div>
+                                <div className="text-[10px] uppercase tracking-wider text-gray-500 mb-1 font-bold">Actual Output</div>
+                                <div className={`bg-[#1e1e1e] border rounded p-2.5 ${tc.passed ? 'border-green-500/30 text-green-400' : 'border-red-500/30 text-red-400'}`}>
+                                  <pre className="whitespace-pre-wrap">{tc.actualOutput !== undefined ? (typeof tc.actualOutput === 'object' ? JSON.stringify(tc.actualOutput, null, 2) : String(tc.actualOutput)) : 'No output'}</pre>
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="text-gray-600 italic">Hidden test case — details not shown.</div>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+                </>
               ) : (
-                <pre className={`whitespace-pre-wrap ${output.status === 'pass' ? 'text-green-400' : 'text-red-400'}`}>
-                  {output.message}
-                </pre>
+                /* ---- Legacy single output ---- */
+                <div className="flex-1 p-4 overflow-y-auto font-mono text-sm">
+                  <pre className={`whitespace-pre-wrap ${output.status === 'pass' ? 'text-green-400' : 'text-red-400'}`}>
+                    {output.message}
+                  </pre>
+                </div>
               )}
             </div>
           </div>
