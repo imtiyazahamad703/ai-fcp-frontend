@@ -11,7 +11,7 @@ export const adminService = {
    */
   generateQuestion: async (
     topic: string,
-    type: 'react' | 'nestjs' | 'fullstack',
+    type: 'react' | 'fullstack',
   ): Promise<IQuestion> => {
     const response = await api.post<{ question: IQuestion }>(
       '/admin/questions/generate',

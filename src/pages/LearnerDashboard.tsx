@@ -92,7 +92,6 @@ const LearnerDashboard = () => {
                 <div className="flex justify-between items-start mb-4">
                   <span className={`text-xs px-2 py-1 rounded font-bold uppercase tracking-wider ${
                     q.type === 'react' ? 'bg-[#61dafb]/10 text-[#61dafb]' :
-                    q.type === 'nestjs' ? 'bg-[#ea2845]/10 text-[#ea2845]' :
                     'bg-[var(--color-primary-500)]/10 text-[var(--color-primary-400)]'
                   }`}>
                     {q.type}

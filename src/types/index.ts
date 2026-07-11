@@ -18,7 +18,7 @@ export interface IQuestion {
   title: string;
   description: string;
   difficulty: 'easy' | 'medium' | 'hard';
-  type: 'react' | 'nestjs' | 'fullstack';
+  type: 'react' | 'fullstack';
   topic: string;
   tags: string[];
   status: 'draft' | 'published' | 'archived';

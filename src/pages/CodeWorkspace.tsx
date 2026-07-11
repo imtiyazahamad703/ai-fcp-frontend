@@ -193,8 +193,15 @@ const CodeWorkspace = () => {
     let mainComponentFile = '';
 
     files.forEach(f => {
-      if (f.filename.startsWith('frontend/src/')) {
-        const name = f.filename.replace('frontend/src', '');
+      let name = '';
+      if (question?.type === 'react') {
+        name = f.filename.startsWith('/') ? f.filename : `/${f.filename}`;
+        if (name.startsWith('/src/')) name = name.replace('/src', '');
+      } else if (question?.type === 'fullstack' && f.filename.startsWith('frontend/src/')) {
+        name = f.filename.replace('frontend/src', '');
+      }
+
+      if (name) {
         spFiles[name] = f.content;
 
         if (!mainComponentFile && f.filename.endsWith('.tsx') && name !== '/App.tsx' && name !== '/index.tsx') {
@@ -288,8 +295,11 @@ root.render(
     return spFiles;
   }, [files]);
 
-  // Bug fix #7: Only show Sandpack preview when actual frontend files exist in the question
-  const hasFrontendFiles = files.some(f => f.filename.startsWith('frontend/src/') && f.filename.endsWith('.tsx'));
+  // Bug fix #7: Show Sandpack preview when question is react or has frontend files
+  const hasFrontendFiles = useMemo(() => {
+    if (question?.type === 'react') return true;
+    return files.some(f => f.filename.startsWith('frontend/src/') && f.filename.endsWith('.tsx'));
+  }, [files, question]);
 
   if (isLoading || !question) {
     return <div className="h-screen flex items-center justify-center bg-[#1e1e1e]"><Loader text="Loading Workspace..." /></div>;
@@ -322,10 +332,10 @@ root.render(
       </div>
 
       <div className="flex-1 flex overflow-hidden">
-        <PanelGroup orientation="horizontal" id="fcp-layout-horizontal">
+        <PanelGroup orientation="horizontal" id="fcp-workspace-h-v3">
           {/* Left Panel: Description */}
-          <Panel defaultSize={33} minSize={20} maxSize={60} className="flex flex-col bg-[#1e1e1e] overflow-y-auto">
-            <div className="p-6">
+          <Panel defaultSize={40} minSize={20} className="flex flex-col bg-[#1e1e1e] overflow-y-auto">
+            <div className="py-6 px-8">
               <h2 className="text-2xl font-bold text-white mb-6">Problem Statement</h2>
               <div className="prose prose-invert prose-sm max-w-none">
                 <pre className="whitespace-pre-wrap font-sans text-gray-300">{question.description}</pre>
@@ -347,12 +357,12 @@ root.render(
           </PanelResizeHandle>
 
           {/* Right Panel: Editor + Output */}
-          <Panel className="flex flex-col bg-[#1e1e1e] min-w-0">
-          <PanelGroup orientation="vertical" id="fcp-layout-vertical">
-            <Panel minSize={30} className="flex flex-col min-h-0">
+          <Panel defaultSize={60} minSize={20} className="flex flex-col bg-[#1e1e1e] min-w-0">
+            <PanelGroup orientation="vertical" id="fcp-workspace-v-v3">
+              <Panel defaultSize={70} minSize={30} className="flex flex-col min-h-0">
                 {/* File Tabs & View Toggle */}
-                <div className="flex bg-[#252526] border-b border-[#333] justify-between items-end pr-2 shrink-0">
-                  <div className="flex overflow-x-auto gap-2 px-2 pt-2 flex-1">
+                <div className="flex bg-[#252526] border-b border-[#333] justify-between items-end pr-2 shrink-0 min-w-0">
+                  <div className="flex overflow-x-auto gap-2 px-2 pt-2 flex-1 min-w-0">
                     {files.map((file, idx) => (
                       <button
                         key={file.filename}
@@ -493,8 +503,8 @@ root.render(
                             key={tc.index}
                             onClick={() => setSelectedTestCase(idx)}
                             className={`w-full px-3 py-2.5 text-left text-xs flex items-center gap-2 border-b border-[#222] transition-colors ${idx === selectedTestCase
-                                ? 'bg-[#2d2d2d] text-white'
-                                : 'text-gray-500 hover:bg-[#252526] hover:text-gray-300'
+                              ? 'bg-[#2d2d2d] text-white'
+                              : 'text-gray-500 hover:bg-[#252526] hover:text-gray-300'
                               }`}
                           >
                             <span className={`w-2 h-2 rounded-full shrink-0 ${tc.passed ? 'bg-green-500' : 'bg-red-500'}`} />
