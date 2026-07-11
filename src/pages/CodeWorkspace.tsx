@@ -154,14 +154,24 @@ const CodeWorkspace = () => {
           const result = await learnerService.executeEndpoint(questionId, files, event.data.method, event.data.url, event.data.data);
           
           if (result.status === 'fail') {
-            throw new Error(result.output);
+            // Bug fix #1: Handle output being string or object
+            const errMsg = typeof result.output === 'string' 
+              ? result.output 
+              : (result.output?.error || result.output?.message || JSON.stringify(result.output));
+            throw new Error(errMsg);
           }
           
-          const targetWindow = (event.source as WindowProxy) || window;
-          targetWindow.postMessage({ type: 'AXIOS_RESPONSE', id: event.data.id, data: result.output }, '*');
+          // Send response back to the Sandpack iframe
+          const iframes = document.querySelectorAll('iframe');
+          iframes.forEach(iframe => {
+            iframe.contentWindow?.postMessage({ type: 'AXIOS_RESPONSE', id: event.data.id, data: result.output }, '*');
+          });
         } catch (e: any) {
-          const targetWindow = (event.source as WindowProxy) || window;
-          targetWindow.postMessage({ type: 'AXIOS_RESPONSE', id: event.data.id, error: e.message || 'Execution failed' }, '*');
+          // Send error back to the Sandpack iframe
+          const iframes = document.querySelectorAll('iframe');
+          iframes.forEach(iframe => {
+            iframe.contentWindow?.postMessage({ type: 'AXIOS_RESPONSE', id: event.data.id, error: e.message || 'Execution failed' }, '*');
+          });
         }
       }
     };
@@ -260,8 +270,16 @@ const createMockMethod = (method) => async (url, configOrData, config) => {
       }
       
       window.parent.postMessage({ type: 'AXIOS_REQUEST', id, url, data, method }, '*');
+      
+      // Bug fix #6: Timeout to prevent infinite hang
+      const timeout = setTimeout(() => {
+         window.removeEventListener('message', listener);
+         reject(new Error('Request timed out after 10 seconds. Check your backend code for errors.'));
+      }, 10000);
+      
       const listener = (event) => {
-         if (event.data.type === 'AXIOS_RESPONSE' && event.data.id === id) {
+         if (event.data && event.data.type === 'AXIOS_RESPONSE' && event.data.id === id) {
+            clearTimeout(timeout);
             window.removeEventListener('message', listener);
             if (event.data.error) reject(new Error(event.data.error));
             else resolve({ data: event.data.data, status: 200 });
@@ -292,7 +310,8 @@ root.render(
     return spFiles;
   }, [files]);
 
-  const hasFrontendFiles = Object.keys(sandpackFiles).length > 0;
+  // Bug fix #7: Only show Sandpack preview when actual frontend files exist in the question
+  const hasFrontendFiles = files.some(f => f.filename.startsWith('frontend/src/') && f.filename.endsWith('.tsx'));
 
   if (isLoading || !question) {
     return <div className="h-screen flex items-center justify-center bg-[#1e1e1e]"><Loader text="Loading Workspace..." /></div>;
