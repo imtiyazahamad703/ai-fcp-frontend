@@ -10,7 +10,7 @@ import { useAdminStore } from '../../store/useAdminStore';
 
 export const QuestionGenerator = () => {
   const [topic, setTopic] = useState('');
-  const [type, setType] = useState<'react' | 'nestjs'>('react');
+  const [type, setType] = useState<'react' | 'nestjs' | 'fullstack'>('react');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -78,12 +78,13 @@ export const QuestionGenerator = () => {
           <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Type</label>
           <select 
             value={type} 
-            onChange={(e) => setType(e.target.value as 'react' | 'nestjs')}
+            onChange={(e) => setType(e.target.value as 'react' | 'nestjs' | 'fullstack')}
             className="w-full bg-[var(--color-bg-input)] border border-[var(--color-border-input)] rounded-[var(--radius-md)] px-3 py-2.5 text-sm focus:outline-none focus:border-[var(--color-primary-400)] transition-colors text-[var(--color-text-primary)]"
             disabled={isLoading}
           >
             <option value="react">React Frontend</option>
             <option value="nestjs">NestJS Backend</option>
+            <option value="fullstack">Full Stack (React + NestJS)</option>
           </select>
         </div>
 
