@@ -442,6 +442,7 @@ root.render(
               <Editor
                 height="100%"
                 language={activeFile?.language === 'tsx' ? 'typescript' : activeFile?.language || 'typescript'}
+                path={activeFile?.filename}
                 theme="vs-dark"
                 value={activeFile?.content || ''}
                 onChange={handleEditorChange}
