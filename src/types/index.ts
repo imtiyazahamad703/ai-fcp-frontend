@@ -14,7 +14,7 @@ export interface IUser {
 
 // Question
 export interface IQuestion {
-  _id: string;
+  _id?: string;
   title: string;
   description: string;
   difficulty: 'easy' | 'medium' | 'hard';
@@ -24,10 +24,9 @@ export interface IQuestion {
   status: 'draft' | 'published' | 'archived';
   starterCode: IStarterFile[];
   editableFiles: string[];
-  visibleTests: ITestCase[];
-  hiddenTestCount: number;
-  createdAt: string;
-  updatedAt: string;
+  testCases: ITestCase[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 // Starter File
