@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import { toast } from 'react-hot-toast';
+import { SandpackProvider, SandpackPreview } from '@codesandbox/sandpack-react';
 import { learnerService } from '../services/learner.service';
 import type { IQuestion, IStarterFile } from '../types';
 import { Loader } from '../components/common/Loader';
@@ -74,6 +75,52 @@ const CodeWorkspace = () => {
 
   const activeFile = files[activeFileIndex];
 
+  // Map files for Sandpack
+  const sandpackFiles = useMemo(() => {
+    const spFiles: Record<string, string> = {};
+    let mainComponentName = 'App';
+    let mainComponentFile = '';
+
+    files.forEach(f => {
+      if (f.filename.startsWith('frontend/src/')) {
+        const name = f.filename.replace('frontend/src', '');
+        spFiles[name] = f.content;
+        
+        if (!mainComponentFile && f.filename.endsWith('.tsx') && !f.filename.includes('App.tsx')) {
+          mainComponentFile = name;
+          const match = f.content.match(/export const (\w+)/);
+          if (match) mainComponentName = match[1];
+        }
+      }
+    });
+
+    if (!spFiles['/App.tsx'] && mainComponentFile) {
+      const isDefault = !spFiles[mainComponentFile].includes(`export const ${mainComponentName}`);
+      const importStatement = isDefault 
+        ? `import ${mainComponentName} from '.${mainComponentFile.replace('.tsx', '')}';`
+        : `import { ${mainComponentName} } from '.${mainComponentFile.replace('.tsx', '')}';`;
+
+      spFiles['/App.tsx'] = `
+        import React from 'react';
+        ${importStatement}
+        import './styles.css';
+        
+        export default function App() {
+          return (
+            <div style={{ padding: 20 }}>
+              <${mainComponentName} />
+            </div>
+          );
+        }
+      `;
+      spFiles['/styles.css'] = `body { font-family: sans-serif; background: #fff; margin: 0; }`;
+    }
+
+    return spFiles;
+  }, [files]);
+
+  const hasFrontendFiles = Object.keys(sandpackFiles).length > 0;
+
   return (
     <div className="h-screen flex flex-col bg-[#1e1e1e] text-gray-300 font-sans">
       {/* Top Navbar */}
@@ -138,23 +185,46 @@ const CodeWorkspace = () => {
             ))}
           </div>
 
-          {/* Editor */}
-          <div className="flex-1 relative">
-            <Editor
-              height="100%"
-              language={activeFile?.language === 'tsx' ? 'typescript' : activeFile?.language || 'typescript'}
-              theme="vs-dark"
-              value={activeFile?.content || ''}
-              onChange={handleEditorChange}
-              options={{
-                readOnly: !activeFile?.editable,
-                minimap: { enabled: false },
-                fontSize: 14,
-                fontFamily: "'Fira Code', 'JetBrains Mono', Consolas, monospace",
-                padding: { top: 16 },
-                scrollBeyondLastLine: false,
-              }}
-            />
+          {/* Editor + Live Preview Split */}
+          <div className="flex-1 flex flex-row min-h-0 overflow-hidden">
+            <div className={`flex-1 relative ${hasFrontendFiles ? 'border-r border-[#333]' : ''}`}>
+              <Editor
+                height="100%"
+                language={activeFile?.language === 'tsx' ? 'typescript' : activeFile?.language || 'typescript'}
+                theme="vs-dark"
+                value={activeFile?.content || ''}
+                onChange={handleEditorChange}
+                options={{
+                  readOnly: !activeFile?.editable,
+                  minimap: { enabled: false },
+                  fontSize: 14,
+                  fontFamily: "'Fira Code', 'JetBrains Mono', Consolas, monospace",
+                  padding: { top: 16 },
+                  scrollBeyondLastLine: false,
+                }}
+              />
+            </div>
+            
+            {hasFrontendFiles && (
+              <div className="flex-1 flex flex-col bg-white">
+                <div className="px-4 py-2 bg-[#252526] border-b border-[#333] flex justify-between items-center text-xs font-bold tracking-wider text-gray-400 uppercase">
+                  <span>Live Preview</span>
+                </div>
+                <div className="flex-1 overflow-hidden relative">
+                  <SandpackProvider 
+                    template="react-ts" 
+                    files={sandpackFiles}
+                    theme="light"
+                  >
+                    <SandpackPreview 
+                      showOpenInCodeSandbox={false}
+                      showRefreshButton={true}
+                      style={{ height: '100%' }}
+                    />
+                  </SandpackProvider>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Output Terminal */}
