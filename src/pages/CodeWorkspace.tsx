@@ -429,14 +429,14 @@ root.render(
         {/* Right Panel: Editor + Output */}
         <div className="w-2/3 flex flex-col bg-[#1e1e1e]">
           {/* File Tabs */}
-          <div className="flex bg-[#252526] border-b border-[#333] overflow-x-auto">
+          <div className="flex bg-[#252526] border-b border-[#333] overflow-x-auto gap-1 px-2 pt-2">
             {files.map((file, idx) => (
               <button
                 key={file.filename}
                 onClick={() => setActiveFileIndex(idx)}
                 title={file.filename}
-                className={`px-5 py-2.5 text-sm font-medium border-t-2 border-r border-[#333] transition-colors flex items-center gap-3 whitespace-nowrap ${idx === activeFileIndex
-                  ? 'border-t-blue-500 bg-[#1e1e1e] text-blue-400'
+                className={`px-5 py-2.5 text-sm font-medium border-t-2 border-x border-x-transparent shrink-0 transition-colors flex items-center gap-2 whitespace-nowrap rounded-t-md ${idx === activeFileIndex
+                  ? 'border-t-blue-500 bg-[#1e1e1e] text-blue-400 border-x-[#333]'
                   : 'border-t-transparent text-gray-500 hover:text-gray-300 hover:bg-[#2d2d2d]'
                   }`}
               >
