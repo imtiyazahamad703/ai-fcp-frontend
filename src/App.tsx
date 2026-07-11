@@ -11,7 +11,6 @@ import AdminQuestions from './pages/AdminQuestions';
 import AdminQuestionEditor from './pages/AdminQuestionEditor';
 import LearnerDashboard from './pages/LearnerDashboard';
 import CodeWorkspace from './pages/CodeWorkspace';
-import ProtectedRoute from './components/common/ProtectedRoute';
 
 function App() {
   const { isAuthenticated, isLoading, user, initialize } = useAuthStore();
