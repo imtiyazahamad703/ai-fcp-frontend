@@ -25,7 +25,7 @@ export const learnerService = {
     questionId: string,
     files: { filename: string; content: string }[]
   ): Promise<{ message: string; status: 'pass' | 'fail'; output: string }> => {
-    const response = await api.post('/execution/submit', {
+    const response = await api.post<{ message: string; status: 'pass' | 'fail'; output: string }>('/execution/submit', {
       questionId,
       files,
     });
