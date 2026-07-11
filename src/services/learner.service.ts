@@ -19,6 +19,14 @@ export const learnerService = {
   },
 
   /**
+   * Get user profile and stats
+   */
+  getProfile: async (): Promise<{ id: string; name: string; completedQuestions: string[] }> => {
+    const response = await api.get<{ profile: { id: string; name: string; completedQuestions: string[] } }>('/users/profile');
+    return response.data.profile;
+  },
+
+  /**
    * Submit code for execution.
    */
   submitExecution: async (
