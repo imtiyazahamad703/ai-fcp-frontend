@@ -44,7 +44,8 @@ export const learnerService = {
    */
   submitExecution: async (
     questionId: string,
-    files: { filename: string; content: string }[]
+    files: { filename: string; content: string }[],
+    isSubmit: boolean = false
   ): Promise<{
     message: string;
     status: 'pass' | 'fail';
@@ -67,6 +68,7 @@ export const learnerService = {
     const response = await api.post('/execution/submit', {
       questionId,
       files,
+      isSubmit,
     });
     return response.data;
   },
