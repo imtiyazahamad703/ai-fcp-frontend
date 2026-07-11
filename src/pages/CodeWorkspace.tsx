@@ -132,10 +132,12 @@ const handleEditorBeforeMount = (monaco: any) => {
   // 2. Ignore missing module errors (e.g. Cannot find module '@nestjs/common')
   // Code 2307: Cannot find module '...'
   // Code 2792: Cannot find module '...'. Did you mean to set the 'moduleResolution' option to 'nodenext'...
+  // Code 2303: Circular definition of import alias
+  // Code 2459: Module declares 'X' locally, but it is not exported
   monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
     noSemanticValidation: false,
     noSyntaxValidation: false,
-    diagnosticCodesToIgnore: [2307, 2792],
+    diagnosticCodesToIgnore: [2307, 2792, 2303, 2459],
   });
 };
 
@@ -429,7 +431,7 @@ root.render(
         {/* Right Panel: Editor + Output */}
         <div className="w-2/3 flex flex-col bg-[#1e1e1e]">
           {/* File Tabs */}
-          <div className="flex bg-[#252526] border-b border-[#333] overflow-x-auto gap-1 px-2 pt-2">
+          <div className="flex bg-[#252526] border-b border-[#333] overflow-x-auto gap-2 px-2 pt-2">
             {files.map((file, idx) => (
               <button
                 key={file.filename}
