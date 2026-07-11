@@ -146,7 +146,29 @@ const CodeWorkspace = () => {
     try {
       const data = await learnerService.getQuestionById(qId);
       setQuestion(data);
-      setFiles(data.starterCode || []);
+
+      // Start with starter code as baseline
+      let loadedFiles = data.starterCode || [];
+
+      // Try to restore last submission — overlays saved content into editable files
+      try {
+        const lastSubmission = await learnerService.getLastSubmission(qId);
+        if (lastSubmission && lastSubmission.files.length > 0) {
+          loadedFiles = loadedFiles.map((starterFile) => {
+            const saved = lastSubmission.files.find(
+              (sf) => sf.filename === starterFile.filename,
+            );
+            // Only restore if the file is editable and we have saved content
+            return saved && starterFile.editable
+              ? { ...starterFile, content: saved.content }
+              : starterFile;
+          });
+        }
+      } catch {
+        // Silently ignore — just use starter code if submission fetch fails
+      }
+
+      setFiles(loadedFiles);
     } catch (err) {
       toast.error('Failed to load question');
       navigate('/dashboard');

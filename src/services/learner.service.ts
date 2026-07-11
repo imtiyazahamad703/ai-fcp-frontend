@@ -19,6 +19,19 @@ export const learnerService = {
   },
 
   /**
+   * Get the current user's last submission (saved code) for a question.
+   * Returns null if the user has never submitted for this question.
+   */
+  getLastSubmission: async (
+    questionId: string,
+  ): Promise<{ files: { filename: string; content: string }[]; status: string } | null> => {
+    const response = await api.get<{
+      submission: { files: { filename: string; content: string }[]; status: string } | null;
+    }>(`/submissions/${questionId}`);
+    return response.data.submission;
+  },
+
+  /**
    * Get user profile and stats
    */
   getProfile: async (): Promise<{ id: string; name: string; completedQuestions: string[] }> => {
