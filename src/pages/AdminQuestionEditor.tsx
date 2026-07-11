@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import { AdminLayout } from '../layouts/AdminLayout';
 import { adminService } from '../services/admin.service';
 import { CodeReviewEditor } from '../features/admin/CodeReviewEditor';
@@ -55,12 +56,12 @@ const AdminQuestionEditor = () => {
         status: statusToSet 
       });
       
-      alert(publish ? 'Question published successfully!' : 'Changes saved as draft');
+      toast.success(publish ? 'Question published successfully!' : 'Changes saved as draft');
       if (publish) {
         navigate('/admin/questions');
       }
     } catch (err: any) {
-      alert('Failed to save changes: ' + (err.message || 'Unknown error'));
+      toast.error('Failed to save changes: ' + (err.message || 'Unknown error'));
     } finally {
       setIsSaving(false);
     }

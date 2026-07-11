@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-hot-toast';
 import { AdminLayout } from '../layouts/AdminLayout';
 import { adminService } from '../services/admin.service';
 import { useAdminStore } from '../store/useAdminStore';
@@ -26,6 +27,7 @@ const AdminQuestions = () => {
       const data = await adminService.getQuestions();
       setQuestions(data);
     } catch (err: any) {
+      toast.error(err.message || 'Failed to fetch questions');
       setError(err.message || 'Failed to fetch questions');
     } finally {
       setIsLoading(false);
@@ -37,8 +39,9 @@ const AdminQuestions = () => {
     try {
       await adminService.deleteQuestion(id);
       setQuestions(questions.filter(q => q._id !== id));
+      toast.success('Question deleted');
     } catch (err: any) {
-      alert('Failed to delete question');
+      toast.error(err.message || 'Failed to delete question');
     }
   };
 

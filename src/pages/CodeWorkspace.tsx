@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
+import { toast } from 'react-hot-toast';
 import { learnerService } from '../services/learner.service';
 import type { IQuestion, IStarterFile } from '../types';
 import { Loader } from '../components/common/Loader';
@@ -32,7 +33,7 @@ const CodeWorkspace = () => {
       setQuestion(data);
       setFiles(data.starterCode || []);
     } catch (err) {
-      alert('Failed to load question');
+      toast.error('Failed to load question');
       navigate('/dashboard');
     } finally {
       setIsLoading(false);

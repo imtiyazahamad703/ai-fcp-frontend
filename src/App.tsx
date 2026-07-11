@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/useAuthStore';
 import { Loader } from './components/common/Loader';
 import Login from './pages/Login';
@@ -10,6 +11,7 @@ import AdminQuestions from './pages/AdminQuestions';
 import AdminQuestionEditor from './pages/AdminQuestionEditor';
 import LearnerDashboard from './pages/LearnerDashboard';
 import CodeWorkspace from './pages/CodeWorkspace';
+import ProtectedRoute from './components/common/ProtectedRoute';
 
 function App() {
   const { isAuthenticated, isLoading, user, initialize } = useAuthStore();
@@ -24,6 +26,7 @@ function App() {
 
   return (
     <BrowserRouter>
+      <Toaster position="top-right" toastOptions={{ style: { background: '#333', color: '#fff' } }} />
       <Routes>
         {/* Public Routes */}
         <Route
