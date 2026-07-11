@@ -434,12 +434,13 @@ root.render(
               <button
                 key={file.filename}
                 onClick={() => setActiveFileIndex(idx)}
+                title={file.filename}
                 className={`px-4 py-2.5 text-sm font-medium border-t-2 transition-colors flex items-center gap-2 ${idx === activeFileIndex
                   ? 'border-blue-500 bg-[#1e1e1e] text-blue-400'
                   : 'border-transparent text-gray-500 hover:text-gray-300 hover:bg-[#2d2d2d]'
                   }`}
               >
-                {file.filename}
+                {file.filename.split('/').pop()}
                 {!file.editable && (
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                 )}
