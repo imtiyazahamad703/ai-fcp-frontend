@@ -19,7 +19,7 @@ export interface IQuestion {
   description: string;
   difficulty: 'easy' | 'medium' | 'hard';
   type: 'react' | 'fullstack';
-  topic: string;
+  userPrompt: string;
   tags: string[];
   status: 'draft' | 'published' | 'archived';
   starterCode: IStarterFile[];

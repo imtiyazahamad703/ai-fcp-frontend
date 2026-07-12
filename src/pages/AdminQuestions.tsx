@@ -91,7 +91,7 @@ const AdminQuestions = () => {
                 <tr key={question._id} className="hover:bg-[var(--color-bg-hover)] transition-colors group">
                   <td className="py-4 px-4">
                     <div className="font-medium text-[var(--color-text-primary)]">{question.title}</div>
-                    <div className="text-xs text-[var(--color-text-tertiary)] truncate w-64">{question.topic}</div>
+                    <div className="text-xs text-[var(--color-text-tertiary)] truncate w-64">{question.userPrompt}</div>
                   </td>
                   <td className="py-4 px-4">
                     <span className="text-sm text-[var(--color-text-secondary)] capitalize">{question.type}</span>
@@ -113,7 +113,7 @@ const AdminQuestions = () => {
                     </span>
                   </td>
                   <td className="py-4 px-4 text-right">
-                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex justify-end gap-2 transition-opacity">
                       <button 
                         onClick={() => navigate(`/admin/questions/${question._id}`)}
                         className="text-sm px-3 py-1.5 rounded bg-[var(--color-primary-500)]/10 text-[var(--color-primary-400)] hover:bg-[var(--color-primary-500)]/20 transition-colors"

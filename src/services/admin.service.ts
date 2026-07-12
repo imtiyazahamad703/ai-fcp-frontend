@@ -10,12 +10,12 @@ export const adminService = {
    * Use AI to generate a question based on a topic.
    */
   generateQuestion: async (
-    topic: string,
+    userPrompt: string,
     type: 'react' | 'fullstack',
   ): Promise<IQuestion> => {
     const response = await api.post<{ question: IQuestion }>(
       '/admin/questions/generate',
-      { topic, type },
+      { userPrompt, type },
     );
     return response.data.question;
   },

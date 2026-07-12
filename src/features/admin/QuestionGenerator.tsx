@@ -9,8 +9,8 @@ import { useAdminStore } from '../../store/useAdminStore';
 // ============================
 
 export const QuestionGenerator = () => {
-  const [topic, setTopic] = useState('');
-  const [type, setType] = useState<'react' | 'fullstack'>('react');
+  const [userPrompt, setUserPrompt] = useState('');
+  const [type, setType] = useState<'react' | 'fullstack'>('fullstack');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -19,7 +19,10 @@ export const QuestionGenerator = () => {
 
   const handleGenerate = async (e: FormEvent) => {
     e.preventDefault();
-    if (!topic.trim()) return;
+    if (!userPrompt.trim()) {
+      setError('Please enter a prompt or topic before generating.');
+      return;
+    }
 
     setIsLoading(true);
     setError('');
@@ -27,7 +30,7 @@ export const QuestionGenerator = () => {
     setGeneratedQuestion(null);
 
     try {
-      const question = await adminService.generateQuestion(topic, type);
+      const question = await adminService.generateQuestion(userPrompt, type);
       setGeneratedQuestion(question);
     } catch (err: unknown) {
       const error = err as { message?: string };
@@ -47,7 +50,7 @@ export const QuestionGenerator = () => {
       await adminService.saveQuestion(generatedQuestion);
       setSuccess('Question saved successfully!');
       setGeneratedQuestion(null);
-      setTopic('');
+      setUserPrompt('');
     } catch (err: unknown) {
       const error = err as { message?: string };
       setError(error?.message || 'Failed to save question');
@@ -62,35 +65,37 @@ export const QuestionGenerator = () => {
         Generate AI Question
       </h3>
       
-      <form onSubmit={handleGenerate} className="flex gap-4 items-end mb-8">
-        <div className="flex-1">
-          <Input
-            label="Topic"
-            type="text"
-            placeholder="e.g. React useState hook with a counter"
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
+      <form onSubmit={handleGenerate} className="bg-[var(--color-bg-base)] p-5 rounded-[var(--radius-md)] border border-[var(--color-border)] mb-8">
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">Prompt / Topic</label>
+          <textarea
+            className="w-full bg-[var(--color-bg-input)] border border-[var(--color-border-input)] rounded-[var(--radius-md)] p-4 text-[var(--color-text-primary)] placeholder-[var(--color-text-tertiary)] focus:outline-none focus:border-[var(--color-primary-400)] transition-colors min-h-[120px] resize-y"
+            placeholder="e.g. Create a React coding challenge that requires the user to build a counter using the useState hook..."
+            value={userPrompt}
+            onChange={(e) => setUserPrompt(e.target.value)}
             disabled={isLoading}
           />
         </div>
         
-        <div className="w-48 mb-6">
-          <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Type</label>
-          <select 
-            value={type} 
-            onChange={(e) => setType(e.target.value as 'react' | 'fullstack')}
-            className="w-full bg-[var(--color-bg-input)] border border-[var(--color-border-input)] rounded-[var(--radius-md)] px-3 py-2.5 text-sm focus:outline-none focus:border-[var(--color-primary-400)] transition-colors text-[var(--color-text-primary)]"
-            disabled={isLoading}
-          >
-            <option value="react">React Frontend</option>
-            <option value="fullstack">Full Stack (React + NestJS)</option>
-          </select>
-        </div>
+        <div className="flex gap-4 items-end">
+          <div className="w-64">
+            <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Target Stack</label>
+            <select 
+              value={type} 
+              onChange={(e) => setType(e.target.value as 'react' | 'fullstack')}
+              className="w-full bg-[var(--color-bg-input)] border border-[var(--color-border-input)] rounded-[var(--radius-md)] px-3 py-2.5 text-sm focus:outline-none focus:border-[var(--color-primary-400)] transition-colors text-[var(--color-text-primary)]"
+              disabled={isLoading}
+            >
+              <option value="react">React Frontend</option>
+              <option value="fullstack">Full Stack (React + NestJS)</option>
+            </select>
+          </div>
 
-        <div className="mb-6">
-          <Button type="submit" variant="primary" isLoading={isLoading} disabled={!topic.trim()}>
-            Generate with AI
-          </Button>
+          <div className="flex-1 flex justify-end">
+            <Button type="submit" variant="primary" isLoading={isLoading}>
+              Generate with AI
+            </Button>
+          </div>
         </div>
       </form>
 

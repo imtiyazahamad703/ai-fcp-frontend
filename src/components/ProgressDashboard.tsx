@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Award, Zap, TrendingUp, Compass, Clock, CheckCircle2, XCircle } from "lucide-react";
 import type { IQuestion } from "../types";
 
@@ -14,6 +15,8 @@ export const ProgressDashboard = ({
   challenges,
   onSelectChallenge,
 }: ProgressDashboardProps) => {
+  const [hoveredPoint, setHoveredPoint] = useState<{ day: string; count: number; x: number; y: number } | null>(null);
+
   const completedCount = completedIds.length;
   const totalCount = challenges.length;
   const completionRate = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
@@ -29,6 +32,45 @@ export const ProgressDashboard = ({
     submissions.map(s => new Date(s.createdAt).toISOString().split('T')[0])
   );
   const streakCount = uniqueSubmissionDates.size;
+
+  // Generate last 7 days data for the curved chart
+  const last7Days = Array.from({ length: 7 }).map((_, i) => {
+    const d = new Date();
+    d.setDate(d.getDate() - (6 - i));
+    return d;
+  });
+
+  const dailyCounts = last7Days.map(date => {
+    const dateStr = date.toISOString().split('T')[0];
+    const daySubmissions = submissions.filter(
+      s => s.status === 'pass' && new Date(s.createdAt).toISOString().split('T')[0] === dateStr
+    );
+    return {
+      dayStr: date.toLocaleDateString('en-US', { weekday: 'short' }),
+      fullDate: dateStr,
+      count: daySubmissions.length
+    };
+  });
+
+  const maxCount = Math.max(...dailyCounts.map(d => d.count), 3);
+  const chartHeight = 80;
+  const points = dailyCounts.map((data, i) => {
+    const x = 20 + i * 43.33;
+    const y = 100 - (data.count / maxCount) * chartHeight;
+    return { x, y, data };
+  });
+
+  const generateCurvePath = () => {
+    if (points.length === 0) return "";
+    let path = `M ${points[0].x} ${points[0].y}`;
+    for (let i = 0; i < points.length - 1; i++) {
+      const p1 = points[i];
+      const p2 = points[i + 1];
+      const cx = (p1.x + p2.x) / 2;
+      path += ` C ${cx} ${p1.y}, ${cx} ${p2.y}, ${p2.x} ${p2.y}`;
+    }
+    return path;
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[22px] pb-8">
@@ -117,63 +159,78 @@ export const ProgressDashboard = ({
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Visual Skills Chart (Custom-crafted Vector SVG) */}
-        <div className="lg:col-span-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 flex flex-col justify-between">
-          <div>
-            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 mb-1">Full-Stack Core Profile</h3>
-            <p className="text-xs text-zinc-400 leading-relaxed mb-4">
-              Visual map illustrating your current competence levels compared to professional standards.
+        {/* Weekly Activity Curved Graph */}
+        <div className="lg:col-span-1 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl p-5 flex flex-col relative min-h-[300px]">
+          <div className="mb-6">
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 mb-1">Weekly Activity</h3>
+            <p className="text-xs text-zinc-400 leading-relaxed">
+              Successful challenge submissions over the last 7 days.
             </p>
           </div>
 
-          {/* SVG Custom Graph */}
-          <div className="flex items-center justify-center py-4 bg-zinc-50/50 dark:bg-zinc-900/40 rounded-lg border border-zinc-100 dark:border-zinc-800/40">
-            <svg viewBox="0 0 200 200" className="w-40 h-40">
-              {/* Spiderweb guide lines */}
-              <circle cx="100" cy="100" r="80" stroke="#eaeaea" strokeWidth="1" fill="none" className="dark:stroke-zinc-800" />
-              <circle cx="100" cy="100" r="55" stroke="#eaeaea" strokeWidth="1" fill="none" className="dark:stroke-zinc-800" />
-              <circle cx="100" cy="100" r="30" stroke="#eaeaea" strokeWidth="1" fill="none" className="dark:stroke-zinc-800" />
-              <line x1="100" y1="20" x2="100" y2="180" stroke="#eaeaea" strokeWidth="1" className="dark:stroke-zinc-800" />
-              <line x1="20" y1="100" x2="180" y2="100" stroke="#eaeaea" strokeWidth="1" className="dark:stroke-zinc-800" />
+          {/* Custom SVG Line Chart */}
+          <div className="relative flex-1 w-full flex items-end justify-center">
+            <svg viewBox="0 0 300 140" className="w-full h-auto overflow-visible">
+              <defs>
+                <linearGradient id="curveGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="rgba(79, 70, 229, 0.4)" />
+                  <stop offset="100%" stopColor="rgba(79, 70, 229, 0.0)" />
+                </linearGradient>
+              </defs>
 
-              {/* Labels */}
-              <text x="100" y="15" textAnchor="middle" fontSize="8" fill="#a1a1aa" fontWeight="bold">UX/Design</text>
-              <text x="100" y="192" textAnchor="middle" fontSize="8" fill="#a1a1aa" fontWeight="bold">APIs/Routing</text>
-              <text x="185" y="103" textAnchor="start" fontSize="8" fill="#a1a1aa" fontWeight="bold">State</text>
-              <text x="15" y="103" textAnchor="end" fontSize="8" fill="#a1a1aa" fontWeight="bold">Integration</text>
+              {/* Grid lines (horizontal) */}
+              {[20, 60, 100].map(y => (
+                <line key={y} x1="20" y1={y} x2="280" y2={y} stroke="#e4e4e7" strokeWidth="1" strokeDasharray="4 4" className="dark:stroke-zinc-800" />
+              ))}
 
-              {/* Draw profile polygon based on actual scores */}
-              {(() => {
-                const limitMax = 500;
-                // Calculate point positions dynamically based on completion stats
-                const topVal = Math.min(80, 20 + (80 * (1 - frontendScore / limitMax)));
-                const rightVal = Math.min(180, 100 + (80 * (frontendScore / limitMax)));
-                const bottomVal = Math.min(180, 100 + (80 * (backendScore / limitMax)));
-                const leftVal = Math.max(20, 100 - (80 * (backendScore / limitMax)));
+              {/* X axis labels */}
+              {points.map((p, i) => (
+                <text key={i} x={p.x} y="130" textAnchor="middle" fontSize="10" fill="#a1a1aa" fontWeight="500">
+                  {p.data.dayStr}
+                </text>
+              ))}
 
-                const pointsStr = `100,${topVal} ${rightVal},100 100,${bottomVal} ${leftVal},100`;
+              {/* The Area */}
+              <path 
+                d={`${generateCurvePath()} L ${points[points.length - 1].x} 110 L ${points[0].x} 110 Z`} 
+                fill="url(#curveGradient)" 
+              />
+              
+              {/* The Line */}
+              <path 
+                d={generateCurvePath()} 
+                fill="none" 
+                stroke="rgb(79, 70, 229)" 
+                strokeWidth="3" 
+                strokeLinecap="round" 
+              />
 
-                return (
-                  <>
-                    <polygon
-                      points={pointsStr}
-                      fill="rgba(79, 70, 229, 0.15)"
-                      stroke="rgb(79, 70, 229)"
-                      strokeWidth="2"
-                    />
-                    {/* Vertices */}
-                    <circle cx="100" cy={topVal} r="3" fill="rgb(79, 70, 229)" />
-                    <circle cx={rightVal} cy="100" r="3" fill="rgb(79, 70, 229)" />
-                    <circle cx="100" cy={bottomVal} r="3" fill="rgb(79, 70, 229)" />
-                    <circle cx={leftVal} cy="100" r="3" fill="rgb(79, 70, 229)" />
-                  </>
-                );
-              })()}
+              {/* The Interactive Dots */}
+              {points.map((p, i) => (
+                <g 
+                  key={i} 
+                  onMouseEnter={() => setHoveredPoint({ day: p.data.fullDate, count: p.data.count, x: p.x, y: p.y })}
+                  onMouseLeave={() => setHoveredPoint(null)}
+                  className="cursor-crosshair"
+                >
+                  <circle cx={p.x} cy={p.y} r="10" fill="transparent" />
+                  <circle cx={p.x} cy={p.y} r="4" fill="white" stroke="rgb(79, 70, 229)" strokeWidth="2" className="dark:fill-zinc-900 transition-all hover:scale-125 origin-center" />
+                </g>
+              ))}
             </svg>
-          </div>
 
-          <div className="text-[10px] text-zinc-400 mt-2 text-center font-semibold">
-            Solve more tasks to expand your polygon vertices dynamically!
+            {/* Hover Tooltip overlay */}
+            {hoveredPoint && (
+              <div 
+                className="absolute z-10 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 text-[10px] font-bold px-3 py-1.5 rounded-lg shadow-xl pointer-events-none transform -translate-x-1/2 -translate-y-full mt-[-8px] transition-all"
+                style={{ left: `${(hoveredPoint.x / 300) * 100}%`, top: `${(hoveredPoint.y / 140) * 100}%` }}
+              >
+                {new Date(hoveredPoint.day).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                <div className="text-center font-normal opacity-80 mt-0.5">{hoveredPoint.count} tasks completed</div>
+                {/* Tooltip triangle tail */}
+                <div className="absolute left-1/2 bottom-0 transform -translate-x-1/2 translate-y-full border-[5px] border-transparent border-t-zinc-900 dark:border-t-white" />
+              </div>
+            )}
           </div>
         </div>
 

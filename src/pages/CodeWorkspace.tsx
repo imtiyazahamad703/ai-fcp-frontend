@@ -308,6 +308,10 @@ const CodeWorkspace = () => {
       spFiles['/index.html'] = indexHtml;
     }
 
+    if (!spFiles['/index.css']) {
+      spFiles['/index.css'] = `@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\n/* Add your custom CSS here */\n`;
+    }
+
     spFiles['/index.tsx'] = `import React from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
@@ -401,9 +405,9 @@ root.render(
   };
 
   return (
-    <div className="h-screen flex flex-col bg-zinc-950 text-zinc-350 font-sans transition-colors duration-200 overflow-hidden">
+    <div className="dark h-screen flex flex-col bg-zinc-950 text-zinc-350 font-sans transition-colors duration-200 overflow-hidden">
       {/* Workspace Top Header Control Nav */}
-      <div className="h-14 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-6 flex items-center justify-between shrink-0">
+      <div className="h-14 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-8 flex items-center justify-between shrink-0">
         <div className="flex items-center space-x-4">
           <button
             onClick={() => navigate('/dashboard')}
@@ -435,7 +439,7 @@ root.render(
                 const found = editorThemes.find(t => t.id === e.target.value);
                 if (found) setSelectedEditorTheme(found);
               }}
-              className="text-xs bg-zinc-50 dark:bg-zinc-850 border border-zinc-200 dark:border-zinc-800 rounded-lg px-2.5 py-1.5 outline-none text-zinc-700 dark:text-zinc-300 font-medium"
+              className="text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg px-2.5 py-1.5 outline-none text-zinc-700 dark:text-zinc-300 font-medium"
             >
               {editorThemes.map(t => (
                 <option key={t.id} value={t.id}>{t.name}</option>
@@ -471,7 +475,7 @@ root.render(
                   onClick={() => setLeftTab("instructions")}
                   className={`px-3 py-1 text-xs font-semibold rounded-md transition ${
                     leftTab === "instructions"
-                      ? "bg-white dark:bg-zinc-850 text-zinc-800 dark:text-zinc-100 shadow-sm border border-zinc-200/50 dark:border-zinc-800/50"
+                      ? "bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-100 shadow-sm border border-zinc-200/50 dark:border-zinc-800/50"
                       : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
                   }`}
                 >
@@ -481,7 +485,7 @@ root.render(
                   onClick={() => setLeftTab("scratchpad")}
                   className={`px-3 py-1 text-xs font-semibold rounded-md transition ${
                     leftTab === "scratchpad"
-                      ? "bg-white dark:bg-zinc-850 text-zinc-800 dark:text-zinc-100 shadow-sm border border-zinc-200/50 dark:border-zinc-800/50"
+                      ? "bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-100 shadow-sm border border-zinc-200/50 dark:border-zinc-800/50"
                       : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
                   }`}
                 >
@@ -492,7 +496,7 @@ root.render(
                     onClick={() => setLeftTab("preview")}
                     className={`px-3 py-1 text-xs font-semibold rounded-md transition ${
                       leftTab === "preview"
-                        ? "bg-white dark:bg-zinc-850 text-zinc-800 dark:text-zinc-100 shadow-sm border border-zinc-200/50 dark:border-zinc-800/50"
+                        ? "bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-100 shadow-sm border border-zinc-200/50 dark:border-zinc-800/50"
                         : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
                     }`}
                   >
@@ -759,7 +763,7 @@ root.render(
                               </div>
                             )}
 
-                            <div className="flex justify-between items-center text-[10px] text-zinc-500 font-sans border-t border-zinc-850 pt-3">
+                            <div className="flex justify-between items-center text-[10px] text-zinc-500 font-sans border-t border-zinc-800 pt-3">
                               <span>Execution time: {tc.executionTimeMs}ms</span>
                               <span className={`px-2 py-0.5 rounded font-bold uppercase ${
                                 tc.passed ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'
