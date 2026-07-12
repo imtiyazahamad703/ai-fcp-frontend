@@ -57,14 +57,14 @@ const AdminQuestions = () => {
 
   return (
     <AdminLayout>
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">Manage Questions</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-[var(--color-text-primary)]">Manage Questions</h1>
           <p className="text-[var(--color-text-secondary)] mt-2">
             Review, edit, and publish generated questions
           </p>
         </div>
-        <Button variant="primary" onClick={() => navigate('/admin')}>
+        <Button variant="primary" onClick={() => navigate('/admin')} className="w-full sm:w-auto">
           Generate New
         </Button>
       </div>
@@ -86,71 +86,117 @@ const AdminQuestions = () => {
         </div>
       ) : (
         <div className="bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-[var(--radius-lg)] overflow-hidden shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[800px]">
-            <thead>
-              <tr className="bg-[var(--color-bg-hover)] border-b border-[var(--color-border)]">
-                <th className="py-3 px-4 text-xs uppercase font-semibold text-[var(--color-text-secondary)]">Title</th>
-                <th className="py-3 px-4 text-xs uppercase font-semibold text-[var(--color-text-secondary)]">Type</th>
-                <th className="py-3 px-4 text-xs uppercase font-semibold text-[var(--color-text-secondary)]">Difficulty</th>
-                <th className="py-3 px-4 text-xs uppercase font-semibold text-[var(--color-text-secondary)]">Status</th>
-                <th className="py-3 px-4 text-xs uppercase font-semibold text-[var(--color-text-secondary)] text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--color-border)]">
+          <div className="w-full">
+            {/* Mobile Card View */}
+            <div className="md:hidden divide-y divide-[var(--color-border)]">
               {paginatedQuestions.map((question) => (
-                <tr key={question._id} className="hover:bg-[var(--color-bg-hover)] transition-colors group">
-                  <td className="py-4 px-4">
-                    <div className="font-medium text-[var(--color-text-primary)]">{question.title}</div>
-                    <div className="text-xs text-[var(--color-text-tertiary)] truncate w-64">{question.userPrompt}</div>
-                  </td>
-                  <td className="py-4 px-4">
-                    <span className="text-sm text-[var(--color-text-secondary)] capitalize">{question.type}</span>
-                  </td>
-                  <td className="py-4 px-4">
-                    <span className={`text-xs px-2 py-1 rounded-full uppercase font-bold tracking-wider ${
+                <div key={question._id} className="p-4 flex flex-col gap-3 hover:bg-[var(--color-bg-hover)] transition-colors">
+                  <div>
+                    <div className="font-medium text-[var(--color-text-primary)] mb-1">{question.title}</div>
+                    <div className="text-xs text-[var(--color-text-tertiary)] line-clamp-2">{question.userPrompt}</div>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs text-[var(--color-text-secondary)] capitalize">{question.type}</span>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-bold tracking-wider ${
                       question.difficulty === 'easy' ? 'bg-green-500/10 text-green-400' :
                       question.difficulty === 'medium' ? 'bg-yellow-500/10 text-yellow-400' :
                       'bg-red-500/10 text-red-400'
                     }`}>
                       {question.difficulty}
                     </span>
-                  </td>
-                  <td className="py-4 px-4">
-                    <span className={`text-xs px-2 py-1 rounded-full uppercase font-bold tracking-wider ${
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-bold tracking-wider ${
                       question.status === 'published' ? 'bg-blue-500/10 text-blue-400' : 'bg-gray-500/10 text-gray-400'
                     }`}>
                       {question.status}
                     </span>
-                  </td>
-                  <td className="py-4 px-4 text-right">
-                    <div className="flex justify-end gap-2 transition-opacity">
-                      <button 
-                        onClick={() => navigate(`/admin/questions/${question._id}`)}
-                        className="text-sm px-3 py-1.5 rounded bg-[var(--color-primary-500)]/10 text-[var(--color-primary-400)] hover:bg-[var(--color-primary-500)]/20 transition-colors"
-                      >
-                        Review
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(question._id!)}
-                        className="text-sm px-3 py-1.5 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                  </div>
+
+                  <div className="flex justify-end gap-2 mt-2 pt-3 border-t border-[var(--color-border)]">
+                    <button 
+                      onClick={() => navigate(`/admin/questions/${question._id}`)}
+                      className="text-xs px-3 py-1.5 rounded bg-[var(--color-primary-500)]/10 text-[var(--color-primary-400)] hover:bg-[var(--color-primary-500)]/20 transition-colors flex-1 font-semibold"
+                    >
+                      Review
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(question._id!)}
+                      className="text-xs px-3 py-1.5 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors flex-1 font-semibold"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[800px]">
+                <thead>
+                  <tr className="bg-[var(--color-bg-hover)] border-b border-[var(--color-border)]">
+                    <th className="py-3 px-4 text-xs uppercase font-semibold text-[var(--color-text-secondary)]">Title</th>
+                    <th className="py-3 px-4 text-xs uppercase font-semibold text-[var(--color-text-secondary)]">Type</th>
+                    <th className="py-3 px-4 text-xs uppercase font-semibold text-[var(--color-text-secondary)]">Difficulty</th>
+                    <th className="py-3 px-4 text-xs uppercase font-semibold text-[var(--color-text-secondary)]">Status</th>
+                    <th className="py-3 px-4 text-xs uppercase font-semibold text-[var(--color-text-secondary)] text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[var(--color-border)]">
+                  {paginatedQuestions.map((question) => (
+                    <tr key={question._id} className="hover:bg-[var(--color-bg-hover)] transition-colors group">
+                      <td className="py-4 px-4">
+                        <div className="font-medium text-[var(--color-text-primary)]">{question.title}</div>
+                        <div className="text-xs text-[var(--color-text-tertiary)] truncate w-64">{question.userPrompt}</div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className="text-sm text-[var(--color-text-secondary)] capitalize">{question.type}</span>
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className={`text-xs px-2 py-1 rounded-full uppercase font-bold tracking-wider ${
+                          question.difficulty === 'easy' ? 'bg-green-500/10 text-green-400' :
+                          question.difficulty === 'medium' ? 'bg-yellow-500/10 text-yellow-400' :
+                          'bg-red-500/10 text-red-400'
+                        }`}>
+                          {question.difficulty}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className={`text-xs px-2 py-1 rounded-full uppercase font-bold tracking-wider ${
+                          question.status === 'published' ? 'bg-blue-500/10 text-blue-400' : 'bg-gray-500/10 text-gray-400'
+                        }`}>
+                          {question.status}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 text-right">
+                        <div className="flex justify-end gap-2 transition-opacity">
+                          <button 
+                            onClick={() => navigate(`/admin/questions/${question._id}`)}
+                            className="text-sm px-3 py-1.5 rounded bg-[var(--color-primary-500)]/10 text-[var(--color-primary-400)] hover:bg-[var(--color-primary-500)]/20 transition-colors"
+                          >
+                            Review
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(question._id!)}
+                            className="text-sm px-3 py-1.5 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
           
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--color-border)] bg-[var(--color-bg-elevated)]">
-              <span className="text-sm text-[var(--color-text-secondary)]">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 sm:px-6 py-4 border-t border-[var(--color-border)] bg-[var(--color-bg-elevated)]">
+              <span className="text-xs sm:text-sm text-[var(--color-text-secondary)] text-center sm:text-left">
                 Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, questions.length)} of {questions.length} entries
               </span>
-              <div className="flex gap-2">
+              <div className="flex gap-2 w-full sm:w-auto justify-center">
                 <Button 
                   variant="secondary" 
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}

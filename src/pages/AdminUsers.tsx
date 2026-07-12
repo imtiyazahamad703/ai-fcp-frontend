@@ -90,10 +90,12 @@ const AdminUsers = () => {
 
   return (
     <AdminLayout>
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">Manage Team</h1>
-          <p className="text-[var(--color-text-secondary)] mt-2">Manage platform administrators and permissions.</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-[var(--color-text-primary)]">Manage Team</h1>
+          <p className="text-[var(--color-text-secondary)] mt-2">
+            View and manage platform users
+          </p>
         </div>
         {!isAdding && (
           <Button onClick={() => setIsAdding(true)} variant="primary" className="flex items-center gap-2">
@@ -152,61 +154,99 @@ const AdminUsers = () => {
       )}
 
       <div className="bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left min-w-[600px]">
-            <thead className="text-xs text-[var(--color-text-secondary)] uppercase bg-[var(--color-bg-hover)] border-b border-[var(--color-border)]">
-              <tr>
-                <th className="px-6 py-4 font-semibold">Administrator</th>
-                <th className="px-6 py-4 font-semibold">Role</th>
-                <th className="px-6 py-4 font-semibold text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--color-border)]">
-              {isLoading ? (
+        <div className="w-full">
+          {/* Mobile Card View */}
+          <div className="md:hidden divide-y divide-[var(--color-border)]">
+            {isLoading ? (
+              <div className="p-8 text-center text-[var(--color-text-tertiary)]">Loading team members...</div>
+            ) : admins.length === 0 ? (
+              <div className="p-8 text-center text-[var(--color-text-tertiary)]">No other administrators found.</div>
+            ) : (
+              paginatedAdmins.map((admin) => (
+                <div key={admin._id} className="p-4 flex flex-col gap-4 hover:bg-[var(--color-bg-hover)] transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-[var(--color-primary-500)]/20 text-[var(--color-primary-400)] flex items-center justify-center font-bold">
+                      {admin.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="font-medium text-[var(--color-text-primary)]">{admin.name}</p>
+                      <p className="text-xs text-[var(--color-text-tertiary)]">{admin.email}</p>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center mt-2 pt-3 border-t border-[var(--color-border)]">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--color-accent-500)]/10 text-[var(--color-accent-400)] border border-[var(--color-accent-500)]/20">
+                      Admin
+                    </span>
+                    <button
+                      onClick={() => handleDelete(admin._id)}
+                      className="text-red-400 hover:text-red-300 px-3 py-1.5 hover:bg-red-400/10 rounded-lg transition-colors inline-flex items-center justify-center font-semibold text-xs gap-1.5"
+                    >
+                      <Trash2 size={14} />
+                      Delete
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-sm text-left min-w-[600px]">
+              <thead className="text-xs text-[var(--color-text-secondary)] uppercase bg-[var(--color-bg-hover)] border-b border-[var(--color-border)]">
                 <tr>
-                  <td colSpan={3} className="px-6 py-8 text-center text-[var(--color-text-tertiary)]">
-                    Loading team members...
-                  </td>
+                  <th className="px-6 py-4 font-semibold">Administrator</th>
+                  <th className="px-6 py-4 font-semibold">Role</th>
+                  <th className="px-6 py-4 font-semibold text-right">Actions</th>
                 </tr>
-              ) : admins.length === 0 ? (
-                <tr>
-                  <td colSpan={3} className="px-6 py-8 text-center text-[var(--color-text-tertiary)]">
-                    No other administrators found.
-                  </td>
-                </tr>
-              ) : (
-                paginatedAdmins.map((admin) => (
-                  <tr key={admin._id} className="hover:bg-[var(--color-bg-hover)]/50 transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-[var(--color-primary-500)]/20 text-[var(--color-primary-400)] flex items-center justify-center font-bold">
-                          {admin.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="font-medium text-[var(--color-text-primary)]">{admin.name}</p>
-                          <p className="text-xs text-[var(--color-text-tertiary)]">{admin.email}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--color-accent-500)]/10 text-[var(--color-accent-400)] border border-[var(--color-accent-500)]/20">
-                        Admin
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleDelete(admin._id)}
-                        className="text-red-400 hover:text-red-300 p-2 hover:bg-red-400/10 rounded-lg transition-colors inline-flex items-center justify-center"
-                        title="Delete Admin"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+              </thead>
+              <tbody className="divide-y divide-[var(--color-border)]">
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={3} className="px-6 py-8 text-center text-[var(--color-text-tertiary)]">
+                      Loading team members...
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ) : admins.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} className="px-6 py-8 text-center text-[var(--color-text-tertiary)]">
+                      No other administrators found.
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedAdmins.map((admin) => (
+                    <tr key={admin._id} className="hover:bg-[var(--color-bg-hover)]/50 transition-colors group">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-full bg-[var(--color-primary-500)]/20 text-[var(--color-primary-400)] flex items-center justify-center font-bold">
+                            {admin.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-medium text-[var(--color-text-primary)]">{admin.name}</p>
+                            <p className="text-xs text-[var(--color-text-tertiary)]">{admin.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--color-accent-500)]/10 text-[var(--color-accent-400)] border border-[var(--color-accent-500)]/20">
+                          Admin
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => handleDelete(admin._id)}
+                          className="text-red-400 hover:text-red-300 p-2 hover:bg-red-400/10 rounded-lg transition-colors inline-flex items-center justify-center"
+                          title="Delete Admin"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
 
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--color-border)] bg-[var(--color-bg-elevated)]">

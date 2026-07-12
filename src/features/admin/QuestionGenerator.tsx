@@ -77,8 +77,8 @@ export const QuestionGenerator = () => {
           />
         </div>
         
-        <div className="flex gap-4 items-end">
-          <div className="w-64">
+        <div className="flex flex-col md:flex-row gap-4 md:items-end">
+          <div className="w-full md:w-64">
             <label className="block text-sm font-medium text-[var(--color-text-secondary)] mb-2">Target Stack</label>
             <select 
               value={type} 
@@ -91,8 +91,8 @@ export const QuestionGenerator = () => {
             </select>
           </div>
 
-          <div className="flex-1 flex justify-end">
-            <Button type="submit" variant="primary" isLoading={isLoading}>
+          <div className="flex-1 flex justify-end w-full md:w-auto mt-2 md:mt-0">
+            <Button type="submit" variant="primary" isLoading={isLoading} className="w-full md:w-auto">
               Generate with AI
             </Button>
           </div>
@@ -130,11 +130,11 @@ export const QuestionGenerator = () => {
             </pre>
           </div>
 
-          <div className="p-4 bg-[var(--color-bg-hover)] border-t border-[var(--color-border)] flex justify-end gap-3">
-            <Button variant="secondary" onClick={() => setGeneratedQuestion(null)} disabled={isLoading}>
+          <div className="p-4 bg-[var(--color-bg-hover)] border-t border-[var(--color-border)] flex flex-col sm:flex-row justify-end gap-3">
+            <Button variant="secondary" onClick={() => setGeneratedQuestion(null)} disabled={isLoading} className="w-full sm:w-auto">
               Discard
             </Button>
-            <Button variant="primary" onClick={handleSave} isLoading={isLoading}>
+            <Button variant="primary" onClick={handleSave} isLoading={isLoading} className="w-full sm:w-auto">
               Save Question
             </Button>
           </div>

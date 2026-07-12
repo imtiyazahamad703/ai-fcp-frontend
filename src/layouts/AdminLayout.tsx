@@ -34,7 +34,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
 
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col min-w-0">
-        <div className="flex-1 p-8 overflow-y-auto">
+        <div className="flex-1 p-4 md:p-8 overflow-y-auto">
           <div className="max-w-7xl mx-auto w-full">
             {children}
           </div>
