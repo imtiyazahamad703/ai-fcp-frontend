@@ -1,5 +1,6 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { adminService } from '../services/admin.service';
+import { AdminLayout } from '../layouts/AdminLayout';
 import { Button } from '../components/common/Button';
 import { Input } from '../components/common/Input';
 import { isValidEmail, isNotEmpty } from '../utils/validators';
@@ -78,11 +79,11 @@ const AdminUsers = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <AdminLayout>
+      <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--color-text-primary)]">Team Management</h1>
-          <p className="text-[var(--color-text-secondary)] mt-1">Manage platform administrators and permissions.</p>
+          <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">Manage Team</h1>
+          <p className="text-[var(--color-text-secondary)] mt-2">Manage platform administrators and permissions.</p>
         </div>
         {!isAdding && (
           <Button onClick={() => setIsAdding(true)} variant="primary" className="flex items-center gap-2">
@@ -92,6 +93,7 @@ const AdminUsers = () => {
         )}
       </div>
 
+      <div className="space-y-6">
       {isAdding && (
         <div className="bg-[var(--color-bg-elevated)] p-6 rounded-xl border border-[var(--color-border)] animate-fade-in">
           <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[var(--color-border)]">
@@ -197,7 +199,8 @@ const AdminUsers = () => {
           </table>
         </div>
       </div>
-    </div>
+      </div>
+    </AdminLayout>
   );
 };
 
