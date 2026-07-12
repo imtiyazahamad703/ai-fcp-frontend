@@ -94,12 +94,19 @@ const CodeWorkspace = () => {
   const [botPos, setBotPos] = useState({ x: 0, y: 0 });
   const [isBotDragging, setIsBotDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0 });
+  const dragStartRaw = useRef({ x: 0, y: 0 });
   const [isBotClick, setIsBotClick] = useState(true);
+
+  // Floating AI Chat Modal Drag state
+  const [modalPos, setModalPos] = useState({ x: 0, y: 0 });
+  const [isModalDragging, setIsModalDragging] = useState(false);
+  const modalDragStart = useRef({ x: 0, y: 0 });
 
   const handleBotPointerDown = (e: React.PointerEvent) => {
     setIsBotDragging(true);
     setIsBotClick(true);
     dragStart.current = { x: e.clientX - botPos.x, y: e.clientY - botPos.y };
+    dragStartRaw.current = { x: e.clientX, y: e.clientY };
     if (e.target instanceof HTMLElement) {
       e.target.setPointerCapture(e.pointerId);
     }
@@ -108,7 +115,13 @@ const CodeWorkspace = () => {
   useEffect(() => {
     const handleBotPointerMove = (e: PointerEvent) => {
       if (!isBotDragging) return;
-      setIsBotClick(false); // If moved, it's not a click
+      
+      const dx = Math.abs(e.clientX - dragStartRaw.current.x);
+      const dy = Math.abs(e.clientY - dragStartRaw.current.y);
+      if (dx > 5 || dy > 5) {
+        setIsBotClick(false);
+      }
+      
       setBotPos({ x: e.clientX - dragStart.current.x, y: e.clientY - dragStart.current.y });
     };
 
@@ -125,6 +138,43 @@ const CodeWorkspace = () => {
       window.removeEventListener('pointerup', handleBotPointerUp);
     };
   }, [isBotDragging]);
+
+  const handleModalPointerDown = (e: React.PointerEvent) => {
+    setIsModalDragging(true);
+    modalDragStart.current = { x: e.clientX - modalPos.x, y: e.clientY - modalPos.y };
+    if (e.target instanceof HTMLElement) {
+      e.target.setPointerCapture(e.pointerId);
+    }
+  };
+
+  useEffect(() => {
+    const handleModalPointerMove = (e: PointerEvent) => {
+      if (!isModalDragging) return;
+      setModalPos({ x: e.clientX - modalDragStart.current.x, y: e.clientY - modalDragStart.current.y });
+    };
+
+    const handleModalPointerUp = () => {
+      setIsModalDragging(false);
+    };
+
+    if (isModalDragging) {
+      window.addEventListener('pointermove', handleModalPointerMove);
+      window.addEventListener('pointerup', handleModalPointerUp);
+    }
+    return () => {
+      window.removeEventListener('pointermove', handleModalPointerMove);
+      window.removeEventListener('pointerup', handleModalPointerUp);
+    };
+  }, [isModalDragging]);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('learner-theme') || 'dark';
+    if (savedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
 
   useEffect(() => {
     if (questionId) fetchQuestion(questionId);
@@ -443,11 +493,15 @@ root.render(
 
   // Helper to render markdown inside AI chat bubble
   const renderMarkdown = (text: string) => {
-    return <ReactMarkdown>{text}</ReactMarkdown>;
+    return (
+      <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-zinc-800/50 prose-pre:border prose-pre:border-zinc-700/50 prose-code:text-indigo-400 prose-code:bg-indigo-500/10 prose-code:px-1 prose-code:rounded">
+        <ReactMarkdown>{text}</ReactMarkdown>
+      </div>
+    );
   };
 
   return (
-    <div className="dark h-screen flex flex-col bg-zinc-950 text-zinc-350 font-sans transition-colors duration-200 overflow-hidden">
+    <div className="h-screen flex flex-col bg-white dark:bg-zinc-950 text-zinc-800 dark:text-zinc-350 font-sans transition-colors duration-200 overflow-hidden">
       {/* Workspace Top Header Control Nav */}
       <div className="h-14 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 md:px-8 flex items-center justify-between shrink-0 gap-2">
         <div className="flex items-center space-x-2 md:space-x-4 min-w-0">
@@ -511,20 +565,20 @@ root.render(
         
         {/* MOBILE INFO TABS (Visible only on md:hidden & when mobileMainScreen is 'info') */}
         {mobileMainScreen === 'info' && (
-          <div className="md:hidden flex bg-zinc-900 border-b border-zinc-800 shrink-0 shadow-md z-10 w-full">
-            <button onClick={() => setMobileInfoTab('problem')} className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${mobileInfoTab === 'problem' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Problem</button>
-            <button onClick={() => setMobileInfoTab('scratchpad')} className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${mobileInfoTab === 'scratchpad' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Scratchpad</button>
+          <div className="md:hidden flex bg-zinc-100 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 shrink-0 shadow-md z-10 w-full">
+            <button onClick={() => setMobileInfoTab('problem')} className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${mobileInfoTab === 'problem' ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-500 bg-white dark:bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}>Problem</button>
+            <button onClick={() => setMobileInfoTab('scratchpad')} className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${mobileInfoTab === 'scratchpad' ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-500 bg-white dark:bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}>Scratchpad</button>
             {hasFrontendFiles && (
-              <button onClick={() => setMobileInfoTab('preview')} className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${mobileInfoTab === 'preview' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Preview</button>
+              <button onClick={() => setMobileInfoTab('preview')} className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${mobileInfoTab === 'preview' ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-500 bg-white dark:bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}>Preview</button>
             )}
           </div>
         )}
 
         {/* MOBILE CODE TABS (Visible only on md:hidden & when mobileMainScreen is 'code') */}
         {mobileMainScreen === 'code' && (
-          <div className="md:hidden flex bg-zinc-900 border-b border-zinc-800 shrink-0 shadow-md z-10 w-full">
-            <button onClick={() => setMobileCodeTab('editor')} className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${mobileCodeTab === 'editor' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Editor</button>
-            <button onClick={() => setMobileCodeTab('console')} className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${mobileCodeTab === 'console' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Console</button>
+          <div className="md:hidden flex bg-zinc-100 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 shrink-0 shadow-md z-10 w-full">
+            <button onClick={() => setMobileCodeTab('editor')} className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${mobileCodeTab === 'editor' ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-500 bg-white dark:bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}>Editor</button>
+            <button onClick={() => setMobileCodeTab('console')} className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${mobileCodeTab === 'console' ? 'text-indigo-600 dark:text-indigo-400 border-b-2 border-indigo-600 dark:border-indigo-500 bg-white dark:bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'}`}>Console</button>
           </div>
         )}
 
@@ -577,7 +631,7 @@ root.render(
               {leftTab === "instructions" && (
                 <div className="p-6">
                   <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-6">Problem Statement</h2>
-                  <div className="prose prose-invert prose-sm max-w-none text-zinc-800 dark:text-zinc-300 leading-relaxed">
+                  <div className="prose prose-zinc dark:prose-invert prose-sm max-w-none text-zinc-800 dark:text-zinc-300 leading-relaxed">
                     <ReactMarkdown>{question.description}</ReactMarkdown>
                   </div>
 
@@ -852,22 +906,22 @@ root.render(
         </div>
 
         {/* MOBILE CONTENT VIEW (Visible only on md:hidden) */}
-        <div className="flex-1 flex flex-col md:hidden overflow-hidden relative bg-zinc-950 w-full max-w-[100vw]">
+        <div className="flex-1 flex flex-col md:hidden overflow-hidden relative bg-white dark:bg-zinc-950 w-full max-w-[100vw]">
           
           {/* ----- INFO SCREEN ----- */}
           {mobileMainScreen === 'info' && (
             <div className="flex-1 flex flex-col min-h-0 relative pb-[60px]">
               {mobileInfoTab === 'problem' && (
                 <div className="p-5 overflow-y-auto h-full">
-                  <h2 className="text-xl font-bold text-white mb-4">Problem Statement</h2>
-                  <div className="prose prose-invert prose-sm max-w-none text-zinc-300">
+                  <h2 className="text-xl font-bold text-zinc-900 dark:text-white mb-4">Problem Statement</h2>
+                  <div className="prose prose-zinc dark:prose-invert prose-sm max-w-none text-zinc-800 dark:text-zinc-300">
                     <ReactMarkdown>{question.description}</ReactMarkdown>
                   </div>
-                  <h3 className="text-md font-bold text-white mt-8 mb-3 border-b border-zinc-800 pb-2">Test Cases</h3>
+                  <h3 className="text-md font-bold text-zinc-900 dark:text-white mt-8 mb-3 border-b border-zinc-200 dark:border-zinc-800 pb-2">Test Cases</h3>
                   <ul className="space-y-3">
                     {question.testCases?.map((tc, idx) => (
-                      <li key={idx} className="bg-zinc-900 p-4 rounded-xl border border-zinc-800">
-                        <p className="text-xs font-semibold text-zinc-300 leading-relaxed">{tc.description}</p>
+                      <li key={idx} className="bg-zinc-50 dark:bg-zinc-900 p-4 rounded-xl border border-zinc-200 dark:border-zinc-800">
+                        <p className="text-xs font-semibold text-zinc-800 dark:text-zinc-300 leading-relaxed">{tc.description}</p>
                       </li>
                     ))}
                   </ul>
@@ -876,13 +930,13 @@ root.render(
 
               {mobileInfoTab === 'scratchpad' && (
                 <div className="p-5 flex flex-col h-full space-y-4">
-                  <div className="flex justify-between items-center pb-2 border-b border-zinc-800 shrink-0">
+                  <div className="flex justify-between items-center pb-2 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
                     <div>
-                      <h4 className="text-xs font-bold text-zinc-200 flex items-center gap-1.5">
+                      <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-200 flex items-center gap-1.5">
                         <PenTool size={12} className="text-indigo-500" />
                         <span>Interactive Scratchpad</span>
                       </h4>
-                      <p className="text-[10px] text-zinc-400 mt-0.5">Write notes, draft solution structures, or paste helpers</p>
+                      <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5">Write notes, draft solution structures, or paste helpers</p>
                     </div>
 
                     <button
@@ -898,7 +952,7 @@ root.render(
                   <textarea
                     value={scratchpadContent}
                     onChange={(e) => setScratchpadContent(e.target.value)}
-                    className="flex-1 w-full bg-zinc-950 text-zinc-100 border border-zinc-800 rounded-xl p-4 font-mono text-xs focus:ring-1 focus:ring-indigo-500 focus:bg-zinc-900 outline-none resize-none min-h-[300px] leading-relaxed"
+                    className="flex-1 w-full bg-zinc-50 dark:bg-zinc-950 text-zinc-800 dark:text-zinc-100 border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 font-mono text-xs focus:ring-1 focus:ring-indigo-500 focus:bg-white dark:focus:bg-zinc-900 outline-none resize-none min-h-[300px] leading-relaxed"
                   />
                   <p className="text-[9px] text-zinc-500 flex items-center space-x-1 leading-none shrink-0">
                     <AlertCircle size={10} />
@@ -1079,17 +1133,24 @@ root.render(
 
       {/* Floating Chat Modal Overlay */}
       {isChatOpen && (
-        <div className="fixed bottom-24 right-6 w-[380px] h-[550px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-8rem)] bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl flex flex-col justify-between z-50 overflow-hidden transition-all duration-300">
+        <div 
+          className="fixed bottom-24 right-6 w-[380px] h-[550px] max-w-[calc(100vw-2rem)] max-h-[calc(100vh-8rem)] bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-2xl flex flex-col justify-between z-50 overflow-hidden transition-all duration-300"
+          style={{ transform: `translate(${modalPos.x}px, ${modalPos.y}px)`, touchAction: 'none' }}
+        >
           {/* Chat header */}
-          <div className="h-12 border-b border-zinc-200 dark:border-zinc-800 px-4 flex items-center justify-between bg-zinc-50 dark:bg-zinc-900/40">
+          <div 
+            className="h-12 border-b border-zinc-200 dark:border-zinc-800 px-4 flex items-center justify-between bg-zinc-50 dark:bg-zinc-900/40 cursor-grab active:cursor-grabbing"
+            onPointerDown={handleModalPointerDown}
+          >
             <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
               <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               <Sparkles size={13} className="text-indigo-500 animate-pulse" />
               <span>AI Workspace Buddy</span>
             </span>
             <button
+              onPointerDown={(e) => e.stopPropagation()} // Prevent dragging when clicking close
               onClick={() => setIsChatOpen(false)}
-              className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800/80 text-lg font-bold leading-none transition"
+              className="absolute top-2.5 right-2.5 text-pink-600 dark:text-pink-400 bg-pink-100 dark:bg-pink-500/20 hover:bg-pink-200 dark:hover:bg-pink-500/30 w-7 h-7 flex items-center justify-center rounded-full text-lg font-bold leading-none transition z-10"
             >
               &times;
             </button>
@@ -1119,7 +1180,7 @@ root.render(
                       className={`p-3 rounded-2xl text-xs leading-relaxed ${
                         isUser
                           ? "bg-indigo-600 text-white rounded-tr-none shadow-sm font-medium"
-                          : "bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-250 rounded-tl-none border border-zinc-200/60 dark:border-zinc-800/60 shadow-sm"
+                          : "bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200 rounded-tl-none border border-zinc-200/60 dark:border-zinc-800/60 shadow-sm"
                       }`}
                     >
                       {renderMarkdown(msg.text)}
@@ -1150,7 +1211,7 @@ root.render(
               onChange={(e) => setChatInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && sendChatMessage()}
               placeholder="Ask helper..."
-              className="flex-1 px-3 py-2 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-105 rounded-xl text-xs outline-none focus:ring-1 focus:ring-indigo-500 transition shadow-inner"
+              className="flex-1 px-3 py-2 border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 rounded-xl text-xs outline-none focus:ring-1 focus:ring-indigo-500 transition shadow-inner"
             />
             <button
               onClick={sendChatMessage}
@@ -1163,35 +1224,27 @@ root.render(
       )}
 
       {/* Floating Chatbot FAB Toggle */}
-      <div 
-        className="fixed bottom-6 right-6 z-50 flex items-center cursor-grab active:cursor-grabbing select-none"
-        style={{ transform: `translate(${botPos.x}px, ${botPos.y}px)`, touchAction: 'none' }}
-        onPointerDown={handleBotPointerDown}
-      >
-        {!isChatOpen && (
+      {!isChatOpen && (
+        <div 
+          className="fixed bottom-6 right-6 z-50 flex items-center cursor-grab active:cursor-grabbing select-none"
+          style={{ transform: `translate(${botPos.x}px, ${botPos.y}px)`, touchAction: 'none' }}
+          onPointerDown={handleBotPointerDown}
+        >
           <div className="mr-3 px-3 py-1.5 bg-zinc-900 dark:bg-white text-zinc-100 dark:text-zinc-900 text-[10px] font-bold rounded-lg shadow-xl font-sans animate-bounce whitespace-nowrap border border-zinc-800/20 dark:border-zinc-200/20 pointer-events-none">
             Need help? Ask AI! ✨
           </div>
-        )}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            if (isBotClick) setIsChatOpen(!isChatOpen);
-          }}
-          className={`flex items-center justify-center h-14 w-14 rounded-full text-white shadow-2xl hover:scale-105 active:scale-95 transition-transform duration-200 border-2 border-white dark:border-zinc-900 ${
-            isChatOpen
-              ? "bg-rose-500 hover:bg-rose-600"
-              : "bg-indigo-600 hover:bg-indigo-700"
-          }`}
-          title="Chat with AI Buddy"
-        >
-          {isChatOpen ? (
-            <span className="text-2xl font-semibold leading-none">&times;</span>
-          ) : (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              if (isBotClick) setIsChatOpen(true);
+            }}
+            className="flex items-center justify-center h-14 w-14 rounded-full text-white shadow-2xl hover:scale-105 active:scale-95 transition-transform duration-200 border-2 border-white dark:border-zinc-900 bg-indigo-600 hover:bg-indigo-700"
+            title="Chat with AI Buddy"
+          >
             <MessageSquare size={20} className="animate-pulse" />
-          )}
-        </button>
-      </div>
+          </button>
+        </div>
+      )}
 
     </div>
   );

@@ -15,10 +15,13 @@ const LearnerDashboard = () => {
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  const [themeMode, setThemeMode] = useState<'light' | 'dark'>('dark');
+  const [themeMode, setThemeMode] = useState<'light' | 'dark'>(() => {
+    return (localStorage.getItem('learner-theme') as 'light' | 'dark') || 'dark';
+  });
 
-  // Sync theme with HTML class attribute
+  // Sync theme with HTML class attribute and localStorage
   useEffect(() => {
+    localStorage.setItem('learner-theme', themeMode);
     const root = window.document.documentElement;
     if (themeMode === 'dark') {
       root.classList.add('dark');
