@@ -171,8 +171,7 @@ const CodeWorkspace = () => {
 
       // Auto-open preview on successful run
       if (result.status === 'pass' && !isSubmit) {
-        const hasFrontend = files.some(f => f.filename.startsWith('frontend/src/') && f.filename.endsWith('.tsx'));
-        if (hasFrontend) {
+        if (hasFrontendFiles) {
           setActiveView('preview');
         }
       }
