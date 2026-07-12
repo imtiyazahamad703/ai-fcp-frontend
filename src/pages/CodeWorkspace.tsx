@@ -90,6 +90,42 @@ const CodeWorkspace = () => {
   const [isAiTyping, setIsAiTyping] = useState(false);
   const chatBottomRef = useRef<HTMLDivElement>(null);
 
+  // Floating AI Chatbot Drag state
+  const [botPos, setBotPos] = useState({ x: 0, y: 0 });
+  const [isBotDragging, setIsBotDragging] = useState(false);
+  const dragStart = useRef({ x: 0, y: 0 });
+  const [isBotClick, setIsBotClick] = useState(true);
+
+  const handleBotPointerDown = (e: React.PointerEvent) => {
+    setIsBotDragging(true);
+    setIsBotClick(true);
+    dragStart.current = { x: e.clientX - botPos.x, y: e.clientY - botPos.y };
+    if (e.target instanceof HTMLElement) {
+      e.target.setPointerCapture(e.pointerId);
+    }
+  };
+
+  useEffect(() => {
+    const handleBotPointerMove = (e: PointerEvent) => {
+      if (!isBotDragging) return;
+      setIsBotClick(false); // If moved, it's not a click
+      setBotPos({ x: e.clientX - dragStart.current.x, y: e.clientY - dragStart.current.y });
+    };
+
+    const handleBotPointerUp = () => {
+      setIsBotDragging(false);
+    };
+
+    if (isBotDragging) {
+      window.addEventListener('pointermove', handleBotPointerMove);
+      window.addEventListener('pointerup', handleBotPointerUp);
+    }
+    return () => {
+      window.removeEventListener('pointermove', handleBotPointerMove);
+      window.removeEventListener('pointerup', handleBotPointerUp);
+    };
+  }, [isBotDragging]);
+
   useEffect(() => {
     if (questionId) fetchQuestion(questionId);
   }, [questionId]);
@@ -423,7 +459,7 @@ root.render(
             <ArrowLeft size={16} />
           </button>
           <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-800 shrink-0" />
-          <span className="text-xs md:text-sm font-bold text-zinc-900 dark:text-zinc-50 font-sans truncate max-w-[120px] sm:max-w-xs md:max-w-md">
+          <span className="text-[11px] md:text-sm font-bold text-zinc-900 dark:text-zinc-50 font-sans overflow-x-auto whitespace-nowrap hide-scrollbar flex-1 max-w-[160px] sm:max-w-xs md:max-w-md">
             {question.title}
           </span>
           <span className={`px-1.5 py-0.5 md:px-2 md:py-0.5 rounded text-[8px] md:text-[10px] font-bold uppercase border tracking-wider shrink-0 ${
@@ -445,7 +481,7 @@ root.render(
                 const found = editorThemes.find(t => t.id === e.target.value);
                 if (found) setSelectedEditorTheme(found);
               }}
-              className="text-[10px] md:text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-md md:rounded-lg px-1.5 py-1 md:px-2.5 md:py-1.5 outline-none text-zinc-700 dark:text-zinc-300 font-medium max-w-[70px] md:max-w-none"
+              className="text-[10px] md:text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-md md:rounded-lg px-1.5 py-1 md:px-2.5 md:py-1.5 outline-none text-zinc-700 dark:text-zinc-300 font-medium max-w-[95px] md:max-w-none"
             >
               {editorThemes.map(t => (
                 <option key={t.id} value={t.id}>{t.name}</option>
@@ -476,10 +512,10 @@ root.render(
         {/* MOBILE INFO TABS (Visible only on md:hidden & when mobileMainScreen is 'info') */}
         {mobileMainScreen === 'info' && (
           <div className="md:hidden flex bg-zinc-900 border-b border-zinc-800 shrink-0 shadow-md z-10 w-full">
-            <button onClick={() => setMobileInfoTab('problem')} className={`flex-1 py-3 text-[11px] font-bold uppercase tracking-wider transition-colors ${mobileInfoTab === 'problem' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Problem</button>
-            <button onClick={() => setMobileInfoTab('scratchpad')} className={`flex-1 py-3 text-[11px] font-bold uppercase tracking-wider transition-colors ${mobileInfoTab === 'scratchpad' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Scratchpad</button>
+            <button onClick={() => setMobileInfoTab('problem')} className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${mobileInfoTab === 'problem' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Problem</button>
+            <button onClick={() => setMobileInfoTab('scratchpad')} className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${mobileInfoTab === 'scratchpad' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Scratchpad</button>
             {hasFrontendFiles && (
-              <button onClick={() => setMobileInfoTab('preview')} className={`flex-1 py-3 text-[11px] font-bold uppercase tracking-wider transition-colors ${mobileInfoTab === 'preview' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Preview</button>
+              <button onClick={() => setMobileInfoTab('preview')} className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${mobileInfoTab === 'preview' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Preview</button>
             )}
           </div>
         )}
@@ -487,8 +523,8 @@ root.render(
         {/* MOBILE CODE TABS (Visible only on md:hidden & when mobileMainScreen is 'code') */}
         {mobileMainScreen === 'code' && (
           <div className="md:hidden flex bg-zinc-900 border-b border-zinc-800 shrink-0 shadow-md z-10 w-full">
-            <button onClick={() => setMobileCodeTab('editor')} className={`flex-1 py-3 text-[11px] font-bold uppercase tracking-wider transition-colors ${mobileCodeTab === 'editor' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Editor</button>
-            <button onClick={() => setMobileCodeTab('console')} className={`flex-1 py-3 text-[11px] font-bold uppercase tracking-wider transition-colors ${mobileCodeTab === 'console' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Console</button>
+            <button onClick={() => setMobileCodeTab('editor')} className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${mobileCodeTab === 'editor' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Editor</button>
+            <button onClick={() => setMobileCodeTab('console')} className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors ${mobileCodeTab === 'console' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Console</button>
           </div>
         )}
 
@@ -820,7 +856,7 @@ root.render(
           
           {/* ----- INFO SCREEN ----- */}
           {mobileMainScreen === 'info' && (
-            <div className="flex-1 flex flex-col min-h-0 relative pb-[76px]">
+            <div className="flex-1 flex flex-col min-h-0 relative pb-[60px]">
               {mobileInfoTab === 'problem' && (
                 <div className="p-5 overflow-y-auto h-full">
                   <h2 className="text-xl font-bold text-white mb-4">Problem Statement</h2>
@@ -915,12 +951,12 @@ root.render(
               )}
 
               {/* Bottom Sticky Action Bar for Info Screen */}
-              <div className="absolute bottom-0 left-0 right-0 p-3 bg-zinc-900/95 backdrop-blur-md border-t border-zinc-800 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] z-20">
+              <div className="absolute bottom-0 left-0 right-0 p-2.5 bg-zinc-900/95 backdrop-blur-md border-t border-zinc-800 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] z-20">
                 <button 
                   onClick={() => setMobileMainScreen('code')}
-                  className="w-full flex items-center justify-center gap-2 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-transform"
+                  className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-transform text-sm"
                 >
-                  <Code size={18} />
+                  <Code size={16} />
                   <span>Open Code Editor</span>
                 </button>
               </div>
@@ -929,7 +965,7 @@ root.render(
 
           {/* ----- CODE SCREEN ----- */}
           {mobileMainScreen === 'code' && (
-            <div className="flex-1 flex flex-col min-h-0 relative pb-[76px]">
+            <div className="flex-1 flex flex-col min-h-0 relative pb-[60px]">
               {mobileCodeTab === 'editor' && (
                 <div className="flex flex-col h-full w-full overflow-hidden">
                   <div className="flex overflow-x-auto gap-1 bg-[#252526] p-1 shrink-0 border-b border-[#333]">
@@ -1010,10 +1046,10 @@ root.render(
               )}
 
               {/* Bottom Sticky Action Bar for Code Screen */}
-              <div className="absolute bottom-0 left-0 right-0 p-3 bg-zinc-900/95 backdrop-blur-md border-t border-zinc-800 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] z-20 flex gap-2">
+              <div className="absolute bottom-0 left-0 right-0 p-2.5 bg-zinc-900/95 backdrop-blur-md border-t border-zinc-800 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] z-20 flex gap-2">
                 <button 
                   onClick={() => setMobileMainScreen('info')}
-                  className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold rounded-xl active:scale-[0.98] transition-transform text-[11px] flex items-center justify-center gap-1.5 border border-zinc-700"
+                  className="flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold rounded-lg active:scale-[0.98] transition-transform text-[11px] flex items-center justify-center gap-1.5 border border-zinc-700"
                 >
                   <ArrowLeft size={14} />
                   <span className="hidden sm:inline">Problem</span>
@@ -1022,7 +1058,7 @@ root.render(
                 <button 
                   onClick={() => handleSubmit(false)}
                   disabled={actionType !== 'idle'}
-                  className="flex-1 py-3 bg-zinc-100 hover:bg-white text-zinc-900 font-bold rounded-xl active:scale-[0.98] transition-transform text-[11px] flex items-center justify-center gap-1.5 shadow-md disabled:opacity-50"
+                  className="flex-1 py-2.5 bg-zinc-100 hover:bg-white text-zinc-900 font-bold rounded-lg active:scale-[0.98] transition-transform text-[11px] flex items-center justify-center gap-1.5 shadow-md disabled:opacity-50"
                 >
                   <Play size={12} className={actionType === 'run' ? "animate-pulse" : ""} fill="currentColor" />
                   <span>{actionType === 'run' ? 'Running' : 'Run'}</span>
@@ -1030,7 +1066,7 @@ root.render(
                 <button 
                   onClick={() => handleSubmit(true)}
                   disabled={actionType !== 'idle'}
-                  className="flex-[1.2] py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl active:scale-[0.98] transition-transform text-[11px] flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-600/20 disabled:opacity-50"
+                  className="flex-[1.2] py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg active:scale-[0.98] transition-transform text-[11px] flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-600/20 disabled:opacity-50"
                 >
                   <Sparkles size={12} className={actionType === 'submit' ? "animate-spin" : ""} />
                   <span>{actionType === 'submit' ? 'Submitting' : 'Submit'}</span>
@@ -1127,15 +1163,22 @@ root.render(
       )}
 
       {/* Floating Chatbot FAB Toggle */}
-      <div className="fixed bottom-6 right-6 z-50 flex items-center">
+      <div 
+        className="fixed bottom-6 right-6 z-50 flex items-center cursor-grab active:cursor-grabbing select-none"
+        style={{ transform: `translate(${botPos.x}px, ${botPos.y}px)`, touchAction: 'none' }}
+        onPointerDown={handleBotPointerDown}
+      >
         {!isChatOpen && (
-          <div className="mr-3 px-3 py-1.5 bg-zinc-900 dark:bg-white text-zinc-100 dark:text-zinc-900 text-[10px] font-bold rounded-lg shadow-xl font-sans animate-bounce whitespace-nowrap border border-zinc-800/20 dark:border-zinc-200/20">
+          <div className="mr-3 px-3 py-1.5 bg-zinc-900 dark:bg-white text-zinc-100 dark:text-zinc-900 text-[10px] font-bold rounded-lg shadow-xl font-sans animate-bounce whitespace-nowrap border border-zinc-800/20 dark:border-zinc-200/20 pointer-events-none">
             Need help? Ask AI! ✨
           </div>
         )}
         <button
-          onClick={() => setIsChatOpen(!isChatOpen)}
-          className={`flex items-center justify-center h-14 w-14 rounded-full text-white shadow-2xl hover:scale-105 active:scale-95 transition-all duration-200 border-2 border-white dark:border-zinc-900 cursor-pointer ${
+          onClick={(e) => {
+            e.stopPropagation();
+            if (isBotClick) setIsChatOpen(!isChatOpen);
+          }}
+          className={`flex items-center justify-center h-14 w-14 rounded-full text-white shadow-2xl hover:scale-105 active:scale-95 transition-transform duration-200 border-2 border-white dark:border-zinc-900 ${
             isChatOpen
               ? "bg-rose-500 hover:bg-rose-600"
               : "bg-indigo-600 hover:bg-indigo-700"
