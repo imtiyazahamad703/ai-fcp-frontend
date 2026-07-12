@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useAuthStore } from '../../store/useAuthStore';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, Menu, X } from 'lucide-react';
+import { useState } from 'react';
 
 // ============================
 // Admin Sidebar Component
@@ -20,8 +21,37 @@ export const Sidebar = ({ theme = 'dark', toggleTheme }: SidebarProps) => {
     { name: 'Team', path: '/admin/users', icon: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75' },
   ];
 
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
   return (
-    <aside className="w-64 bg-[var(--color-bg-elevated)] border-r border-[var(--color-border)] flex flex-col h-screen sticky top-0 transition-colors duration-200">
+    <>
+      {/* Mobile Top Header */}
+      <div className="md:hidden sticky top-0 z-40 flex items-center justify-between bg-[var(--color-bg-elevated)] border-b border-[var(--color-border)] px-4 h-14 w-full">
+        <h2 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--color-primary-400)] to-[var(--color-accent-400)]">
+          AI FCP Admin
+        </h2>
+        <button
+          onClick={() => setIsMobileOpen(!isMobileOpen)}
+          className="p-2 rounded-lg text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-hover)] transition-colors"
+        >
+          {isMobileOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
+      </div>
+
+      {/* Sidebar Overlay for Mobile */}
+      {isMobileOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm md:hidden"
+          onClick={() => setIsMobileOpen(false)}
+        />
+      )}
+
+      {/* Sidebar Main Container */}
+      <aside 
+        className={`fixed md:sticky top-0 left-0 z-50 md:z-auto h-screen w-64 bg-[var(--color-bg-elevated)] border-r border-[var(--color-border)] flex flex-col transition-transform duration-300 md:translate-x-0 ${
+          isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        }`}
+      >
       <div className="p-6">
         <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-[var(--color-primary-400)] to-[var(--color-accent-400)]">
           AI FCP Admin
@@ -35,6 +65,7 @@ export const Sidebar = ({ theme = 'dark', toggleTheme }: SidebarProps) => {
             key={item.name}
             to={item.path}
             end={item.path === '/admin'}
+            onClick={() => setIsMobileOpen(false)}
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-3 rounded-[var(--radius-md)] transition-colors ${
                 isActive
@@ -85,5 +116,6 @@ export const Sidebar = ({ theme = 'dark', toggleTheme }: SidebarProps) => {
         </button>
       </div>
     </aside>
+    </>
   );
 };

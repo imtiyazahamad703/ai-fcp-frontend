@@ -28,7 +28,7 @@ export const AdminLayout = ({ children }: AdminLayoutProps) => {
   const toggleTheme = () => setThemeMode((prev) => (prev === 'light' ? 'dark' : 'light'));
 
   return (
-    <div className="flex min-h-screen bg-[var(--color-bg-base)] text-[var(--color-text-primary)] transition-colors duration-200">
+    <div className="flex flex-col md:flex-row min-h-screen bg-[var(--color-bg-base)] text-[var(--color-text-primary)] transition-colors duration-200">
       {/* Sidebar */}
       <Sidebar theme={themeMode} toggleTheme={toggleTheme} />
 
