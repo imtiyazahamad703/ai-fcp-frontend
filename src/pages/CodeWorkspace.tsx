@@ -186,6 +186,14 @@ const CodeWorkspace = () => {
   };
 
   // Map files for Sandpack
+  // Identify if it's explicitly or implicitly a React-only question (legacy support)
+  const isReact = useMemo(() => {
+    if (question?.type?.toLowerCase() === 'react') return true;
+    const hasTsx = files.some(f => f.filename.endsWith('.tsx'));
+    const hasFullstackPrefix = files.some(f => f.filename.startsWith('frontend/src/'));
+    return hasTsx && !hasFullstackPrefix;
+  }, [question, files]);
+
   const sandpackFiles = useMemo(() => {
     const spFiles: Record<string, string> = {};
     let mainComponentName = 'App';
@@ -193,11 +201,10 @@ const CodeWorkspace = () => {
 
     files.forEach(f => {
       let name = '';
-      const qType = question?.type?.toLowerCase();
-      if (qType === 'react') {
+      if (isReact) {
         name = f.filename.startsWith('/') ? f.filename : `/${f.filename}`;
         if (name.startsWith('/src/')) name = name.replace('/src', '');
-      } else if (qType === 'fullstack' && f.filename.startsWith('frontend/src/')) {
+      } else if (f.filename.startsWith('frontend/src/')) {
         name = f.filename.replace('frontend/src', '');
       }
 
@@ -297,11 +304,8 @@ root.render(
 
   // Bug fix #7: Show Sandpack preview when question is react or has frontend files
   const hasFrontendFiles = useMemo(() => {
-    const qType = question?.type?.toLowerCase();
-    console.log("hasFrontendFiles check => question?.type:", qType, "files:", files.map(f => f.filename));
-    if (qType === 'react') return true;
-    return files.some(f => f.filename.startsWith('frontend/src/') && f.filename.endsWith('.tsx'));
-  }, [files, question]);
+    return isReact || files.some(f => f.filename.startsWith('frontend/src/') && f.filename.endsWith('.tsx'));
+  }, [isReact, files]);
 
   if (isLoading || !question) {
     return <div className="h-screen flex items-center justify-center bg-[#1e1e1e]"><Loader text="Loading Workspace..." /></div>;
