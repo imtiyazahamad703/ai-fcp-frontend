@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { AdminLayout } from '../layouts/AdminLayout';
@@ -16,6 +16,9 @@ const AdminQuestions = () => {
   const [error, setError] = useState('');
   const { questions, setQuestions } = useAdminStore();
   const navigate = useNavigate();
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchQuestions();
@@ -44,6 +47,13 @@ const AdminQuestions = () => {
       toast.error(err.message || 'Failed to delete question');
     }
   };
+
+  const paginatedQuestions = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return questions.slice(start, start + itemsPerPage);
+  }, [questions, currentPage]);
+
+  const totalPages = Math.ceil(questions.length / itemsPerPage);
 
   return (
     <AdminLayout>
@@ -87,7 +97,7 @@ const AdminQuestions = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--color-border)]">
-              {questions.map((question) => (
+              {paginatedQuestions.map((question) => (
                 <tr key={question._id} className="hover:bg-[var(--color-bg-hover)] transition-colors group">
                   <td className="py-4 px-4">
                     <div className="font-medium text-[var(--color-text-primary)]">{question.title}</div>
@@ -132,6 +142,30 @@ const AdminQuestions = () => {
               ))}
             </tbody>
           </table>
+          
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--color-border)] bg-[var(--color-bg-elevated)]">
+              <span className="text-sm text-[var(--color-text-secondary)]">
+                Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, questions.length)} of {questions.length} entries
+              </span>
+              <div className="flex gap-2">
+                <Button 
+                  variant="secondary" 
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <Button 
+                  variant="secondary" 
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </AdminLayout>

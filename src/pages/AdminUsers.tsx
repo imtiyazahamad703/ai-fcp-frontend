@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, useEffect, useMemo, type FormEvent } from 'react';
 import { adminService } from '../services/admin.service';
 import { AdminLayout } from '../layouts/AdminLayout';
 import { Button } from '../components/common/Button';
@@ -18,6 +18,9 @@ const AdminUsers = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [formLoading, setFormLoading] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => {
     fetchAdmins();
@@ -77,6 +80,13 @@ const AdminUsers = () => {
       }
     }
   };
+
+  const paginatedAdmins = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return admins.slice(start, start + itemsPerPage);
+  }, [admins, currentPage]);
+
+  const totalPages = Math.ceil(admins.length / itemsPerPage);
 
   return (
     <AdminLayout>
@@ -165,7 +175,7 @@ const AdminUsers = () => {
                   </td>
                 </tr>
               ) : (
-                admins.map((admin) => (
+                paginatedAdmins.map((admin) => (
                   <tr key={admin._id} className="hover:bg-[var(--color-bg-hover)]/50 transition-colors group">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -197,6 +207,30 @@ const AdminUsers = () => {
               )}
             </tbody>
           </table>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--color-border)] bg-[var(--color-bg-elevated)]">
+              <span className="text-sm text-[var(--color-text-secondary)]">
+                Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, admins.length)} of {admins.length} entries
+              </span>
+              <div className="flex gap-2">
+                <Button 
+                  variant="secondary" 
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <Button 
+                  variant="secondary" 
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
       </div>

@@ -20,13 +20,6 @@ const AdminDashboard = () => {
         <section>
           <QuestionGenerator />
         </section>
-
-        {/* Future Section: Question List (Sprint 4) */}
-        <section>
-          <div className="bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-[var(--radius-lg)] p-6 shadow-sm flex items-center justify-center h-48">
-            <p className="text-[var(--color-text-tertiary)]">Question List & Review UI coming in next sprint.</p>
-          </div>
-        </section>
       </div>
     </AdminLayout>
   );
