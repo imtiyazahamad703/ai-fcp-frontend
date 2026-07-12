@@ -65,7 +65,7 @@ export const learnerService = {
       }[];
     };
   }> => {
-    const response = await api.post('/execution/submit', {
+    const response = await api.post<any>('/execution/submit', {
       questionId,
       files,
       isSubmit,

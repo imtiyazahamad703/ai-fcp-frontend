@@ -49,6 +49,7 @@
   --color-danger-600: #dc2626;
 
   /* Neutral — Dark mode surfaces */
+  --color-bg-base: #08080c;
   --color-bg-primary: #0a0a0f;
   --color-bg-secondary: #111118;
   --color-bg-tertiary: #1a1a24;
