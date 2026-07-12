@@ -11,7 +11,8 @@ import {
   Check, 
   ChevronRight, 
   FileText,
-  LogOut
+  LogOut,
+  Menu
 } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import type { UserProfile } from "../types";
@@ -140,9 +141,9 @@ export const Sidebar = ({
         </div>
         <button
           onClick={() => setIsMobileOpen(!isMobileOpen)}
-          className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300"
+          className="p-1.5 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 transition-colors hover:bg-zinc-200 dark:hover:bg-zinc-800"
         >
-          {isMobileOpen ? "Close Menu" : "Menu"}
+          {isMobileOpen ? <X size={20} /> : <Menu size={20} />}
         </button>
       </div>
 
@@ -156,7 +157,7 @@ export const Sidebar = ({
 
       {/* Sidebar Main Container */}
       <aside 
-        className={`fixed md:sticky top-0 left-0 z-40 h-screen w-64 border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex flex-col justify-between transition-transform duration-300 md:translate-x-0 ${
+        className={`fixed md:sticky top-0 left-0 z-40 h-[100dvh] md:h-screen w-64 border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex flex-col justify-between transition-transform duration-300 md:translate-x-0 ${
           isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
@@ -305,7 +306,7 @@ export const Sidebar = ({
         </div>
 
         {/* Logout Section at the Bottom */}
-        <div className="p-4 border-t border-zinc-150 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/20">
+        <div className="p-4 border-t border-zinc-150 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/20 shrink-0">
           <button
             onClick={logout}
             className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-red-500 hover:bg-red-500/10 transition-colors text-xs font-semibold"

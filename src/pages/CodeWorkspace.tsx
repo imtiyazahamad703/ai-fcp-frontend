@@ -951,7 +951,7 @@ root.render(
               )}
 
               {/* Bottom Sticky Action Bar for Info Screen */}
-              <div className="absolute bottom-0 left-0 right-0 p-2.5 bg-zinc-900/95 backdrop-blur-md border-t border-zinc-800 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] z-20">
+              <div className="sticky bottom-0 left-0 right-0 p-2.5 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-t border-zinc-200 dark:border-zinc-800 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] dark:shadow-[0_-10px_30px_rgba(0,0,0,0.5)] z-20 mt-auto">
                 <button 
                   onClick={() => setMobileMainScreen('code')}
                   className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-transform text-sm"

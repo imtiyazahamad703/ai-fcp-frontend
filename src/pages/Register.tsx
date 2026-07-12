@@ -49,13 +49,13 @@ const Register = () => {
 
   return (
     <AuthLayout>
-      <form onSubmit={handleSubmit} className="auth-form" id="register-form">
-        <h2 className="auth-form-title">Create Account</h2>
-        <p className="auth-form-subtitle">Join the coding practice platform</p>
+      <form onSubmit={handleSubmit} className="flex flex-col w-full" id="register-form">
+        <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-1">Create Account</h2>
+        <p className="text-zinc-500 dark:text-zinc-400 text-sm mb-6">Join the coding practice platform</p>
 
         {apiError && (
-          <div className="auth-error animate-fade-in">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <div className="flex items-start gap-2 p-3 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-400/10 border border-red-200 dark:border-red-400/20 rounded-lg mb-6 animate-fade-in">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mt-0.5 shrink-0">
               <circle cx="12" cy="12" r="10" />
               <line x1="15" y1="9" x2="9" y2="15" />
               <line x1="9" y1="9" x2="15" y2="15" />
@@ -115,14 +115,14 @@ const Register = () => {
           variant="primary"
           size="lg"
           isLoading={isLoading}
-          className="auth-submit-btn"
+          className="w-full mt-4 bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-200 text-white dark:text-zinc-900 shadow-sm rounded-lg border border-transparent dark:border-zinc-200 transition-all font-medium"
         >
           Create Account
         </Button>
 
-        <p className="auth-footer-text">
+        <p className="text-center text-sm text-zinc-600 dark:text-zinc-400 mt-6">
           Already have an account?{' '}
-          <Link to="/login" className="auth-link">Sign In</Link>
+          <Link to="/login" className="text-indigo-500 hover:text-indigo-400 font-semibold transition-colors">Sign In</Link>
         </p>
       </form>
     </AuthLayout>

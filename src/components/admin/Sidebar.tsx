@@ -48,7 +48,7 @@ export const Sidebar = ({ theme = 'dark', toggleTheme }: SidebarProps) => {
 
       {/* Sidebar Main Container */}
       <aside 
-        className={`fixed md:sticky top-0 left-0 z-50 md:z-auto h-screen w-64 bg-[var(--color-bg-elevated)] border-r border-[var(--color-border)] flex flex-col transition-transform duration-300 md:translate-x-0 ${
+        className={`fixed md:sticky top-0 left-0 z-50 md:z-auto h-[100dvh] md:h-screen w-64 bg-[var(--color-bg-elevated)] border-r border-[var(--color-border)] flex flex-col transition-transform duration-300 md:translate-x-0 ${
           isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
@@ -82,7 +82,7 @@ export const Sidebar = ({ theme = 'dark', toggleTheme }: SidebarProps) => {
         ))}
       </nav>
 
-      <div className="p-4 border-t border-[var(--color-border)]">
+      <div className="p-4 border-t border-[var(--color-border)] shrink-0">
         <div className="flex items-center gap-3 mb-4 px-2">
           <div className="w-10 h-10 rounded-full bg-[var(--color-primary-500)]/20 text-[var(--color-primary-400)] flex items-center justify-center font-bold">
             {user?.name.charAt(0).toUpperCase()}
