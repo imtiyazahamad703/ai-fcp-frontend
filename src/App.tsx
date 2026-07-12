@@ -6,6 +6,7 @@ import { Loader } from './components/common/Loader';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminQuestions from './pages/AdminQuestions';
 import AdminQuestionEditor from './pages/AdminQuestionEditor';
@@ -55,6 +56,16 @@ function App() {
               <Navigate to="/dashboard" replace />
             ) : (
               <ForgotPassword />
+            )
+          }
+        />
+        <Route
+          path="/reset-password/:token"
+          element={
+            isAuthenticated ? (
+              <Navigate to="/dashboard" replace />
+            ) : (
+              <ResetPassword />
             )
           }
         />

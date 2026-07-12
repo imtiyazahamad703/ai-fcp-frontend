@@ -4,6 +4,7 @@ import { AuthLayout } from '../layouts/AuthLayout';
 import { Input } from '../components/common/Input';
 import { Button } from '../components/common/Button';
 import { isValidEmail, isNotEmpty } from '../utils/validators';
+import { authService } from '../services/auth.service';
 
 // ============================
 // Forgot Password Page
@@ -33,8 +34,7 @@ const ForgotPassword = () => {
     setIsLoading(true);
 
     try {
-      // Simulated API call — actual email service will be wired in a future sprint
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await authService.forgotPassword(email);
       setIsSuccess(true);
     } catch (err: unknown) {
       const error = err as { message?: string };
