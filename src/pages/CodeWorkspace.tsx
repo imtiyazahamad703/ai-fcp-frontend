@@ -932,12 +932,12 @@ root.render(
             <div className="flex-1 flex flex-col min-h-0 relative pb-[76px]">
               {mobileCodeTab === 'editor' && (
                 <div className="flex flex-col h-full w-full overflow-hidden">
-                  <div className="flex overflow-x-auto gap-2 bg-[#252526] p-2 shrink-0 border-b border-[#333]">
+                  <div className="flex overflow-x-auto gap-1 bg-[#252526] p-1 shrink-0 border-b border-[#333]">
                     {files.map((file, idx) => (
                       <button
                         key={file.filename}
                         onClick={() => setActiveFileIndex(idx)}
-                        className={`px-4 py-2 text-xs font-semibold rounded-md transition-colors ${idx === activeFileIndex ? 'bg-[#1e1e1e] text-indigo-400 shadow-sm border border-zinc-700' : 'text-zinc-400 hover:bg-[#2d2d2d]'}`}
+                        className={`px-3 py-1.5 text-[11px] font-semibold rounded-md transition-colors ${idx === activeFileIndex ? 'bg-[#1e1e1e] text-indigo-400 shadow-sm border border-zinc-700' : 'text-zinc-400 hover:bg-[#2d2d2d]'}`}
                       >
                         {file.filename.split('/').pop()}
                         {!file.editable && <Lock size={10} className="inline ml-1 text-zinc-500" />}
