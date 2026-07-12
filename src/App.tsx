@@ -8,6 +8,7 @@ import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminUsers from './pages/AdminUsers';
 import AdminQuestions from './pages/AdminQuestions';
 import AdminQuestionEditor from './pages/AdminQuestionEditor';
 import LearnerDashboard from './pages/LearnerDashboard';
@@ -86,6 +87,16 @@ function App() {
           element={
             isAuthenticated && user?.role === 'admin' ? (
               <AdminQuestions />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
+        <Route
+          path="/admin/users"
+          element={
+            isAuthenticated && user?.role === 'admin' ? (
+              <AdminUsers />
             ) : (
               <Navigate to="/login" replace />
             )

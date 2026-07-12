@@ -1,11 +1,34 @@
 import { api } from './axios';
-import type { IQuestion } from '../types';
+import type { IQuestion, IUser, IRegisterRequest } from '../types';
 
 // ============================
 // Admin API Service
 // ============================
 
 export const adminService = {
+  /**
+   * Get all admins for the dashboard.
+   */
+  getAdmins: async (): Promise<IUser[]> => {
+    const response = await api.get<{ admins: IUser[] }>('/admin/users');
+    return response.data.admins;
+  },
+
+  /**
+   * Create a new admin.
+   */
+  createAdmin: async (data: IRegisterRequest): Promise<IUser> => {
+    const response = await api.post<{ admin: IUser }>('/admin/users', data);
+    return response.data.admin;
+  },
+
+  /**
+   * Delete an admin.
+   */
+  deleteAdmin: async (id: string): Promise<void> => {
+    await api.delete(`/admin/users/${id}`);
+  },
+
   /**
    * Use AI to generate a question based on a topic.
    */
