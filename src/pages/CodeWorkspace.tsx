@@ -413,20 +413,20 @@ root.render(
   return (
     <div className="dark h-screen flex flex-col bg-zinc-950 text-zinc-350 font-sans transition-colors duration-200 overflow-hidden">
       {/* Workspace Top Header Control Nav */}
-      <div className="h-14 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-8 flex items-center justify-between shrink-0">
-        <div className="flex items-center space-x-4">
+      <div className="h-14 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 md:px-8 flex items-center justify-between shrink-0 gap-2">
+        <div className="flex items-center space-x-2 md:space-x-4 min-w-0">
           <button
             onClick={() => navigate('/dashboard')}
-            className="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg flex items-center justify-center"
+            className="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition p-1 md:p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg flex items-center justify-center shrink-0"
             title="Back to Dashboard"
           >
             <ArrowLeft size={16} />
           </button>
-          <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-800" />
-          <span className="text-sm font-bold text-zinc-900 dark:text-zinc-50 font-sans truncate max-w-xs md:max-w-md">
+          <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-800 shrink-0" />
+          <span className="text-xs md:text-sm font-bold text-zinc-900 dark:text-zinc-50 font-sans truncate max-w-[120px] sm:max-w-xs md:max-w-md">
             {question.title}
           </span>
-          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border tracking-wider ${
+          <span className={`px-1.5 py-0.5 md:px-2 md:py-0.5 rounded text-[8px] md:text-[10px] font-bold uppercase border tracking-wider shrink-0 ${
             question.difficulty === "easy" ? "bg-green-50 text-green-600 border-green-200" :
             question.difficulty === "medium" ? "bg-amber-50 text-amber-600 border-amber-200" :
             "bg-red-50 text-red-600 border-red-200"
@@ -435,7 +435,7 @@ root.render(
           </span>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3 shrink-0">
           {/* Theme customizer drop down */}
           <div className="flex items-center space-x-1">
             <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-bold uppercase hidden md:inline">Theme</span>
@@ -445,7 +445,7 @@ root.render(
                 const found = editorThemes.find(t => t.id === e.target.value);
                 if (found) setSelectedEditorTheme(found);
               }}
-              className="text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-lg px-2.5 py-1.5 outline-none text-zinc-700 dark:text-zinc-300 font-medium"
+              className="text-[10px] md:text-xs bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-md md:rounded-lg px-1.5 py-1 md:px-2.5 md:py-1.5 outline-none text-zinc-700 dark:text-zinc-300 font-medium max-w-[70px] md:max-w-none"
             >
               {editorThemes.map(t => (
                 <option key={t.id} value={t.id}>{t.name}</option>
