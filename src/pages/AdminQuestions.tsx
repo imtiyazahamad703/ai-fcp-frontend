@@ -86,7 +86,8 @@ const AdminQuestions = () => {
         </div>
       ) : (
         <div className="bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-[var(--radius-lg)] overflow-hidden shadow-sm">
-          <table className="w-full text-left border-collapse">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[800px]">
             <thead>
               <tr className="bg-[var(--color-bg-hover)] border-b border-[var(--color-border)]">
                 <th className="py-3 px-4 text-xs uppercase font-semibold text-[var(--color-text-secondary)]">Title</th>
@@ -142,6 +143,7 @@ const AdminQuestions = () => {
               ))}
             </tbody>
           </table>
+          </div>
           
           {totalPages > 1 && (
             <div className="flex items-center justify-between px-6 py-4 border-t border-[var(--color-border)] bg-[var(--color-bg-elevated)]">

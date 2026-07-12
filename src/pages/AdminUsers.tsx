@@ -153,7 +153,7 @@ const AdminUsers = () => {
 
       <div className="bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
+          <table className="w-full text-sm text-left min-w-[600px]">
             <thead className="text-xs text-[var(--color-text-secondary)] uppercase bg-[var(--color-bg-hover)] border-b border-[var(--color-border)]">
               <tr>
                 <th className="px-6 py-4 font-semibold">Administrator</th>

@@ -70,6 +70,9 @@ const CodeWorkspace = () => {
   // Layout Tab selection on the left
   const [leftTab, setLeftTab] = useState<'instructions' | 'scratchpad' | 'preview'>('instructions');
 
+  // Mobile Tab State
+  const [mobileTab, setMobileTab] = useState<'problem' | 'editor' | 'console'>('problem');
+
   // Editor Themes state
   const [selectedEditorTheme, setSelectedEditorTheme] = useState(editorThemes[0]);
 
@@ -463,8 +466,18 @@ root.render(
       </div>
 
       {/* Main Split-Screen Panel Group */}
-      <div className="flex-1 flex overflow-hidden">
-        <PanelGroup orientation="horizontal" id="fcp-workspace-h-v3">
+      <div className="flex-1 flex overflow-hidden flex-col md:flex-row">
+        
+        {/* MOBILE TAB NAV (Visible only on md:hidden) */}
+        <div className="md:hidden flex bg-zinc-900 border-b border-zinc-800 shrink-0 shadow-md z-10">
+          <button onClick={() => setMobileTab('problem')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors ${mobileTab === 'problem' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Problem</button>
+          <button onClick={() => setMobileTab('editor')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors ${mobileTab === 'editor' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Editor</button>
+          <button onClick={() => setMobileTab('console')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors ${mobileTab === 'console' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Console</button>
+        </div>
+
+        {/* DESKTOP PANEL GROUP (Hidden on mobile) */}
+        <div className="hidden md:flex flex-1 h-full w-full">
+          <PanelGroup orientation="horizontal" id="fcp-workspace-h-v3">
           
           {/* Left Section Panel (Instructions, Scratchpad, Live Sandbox Preview) */}
           <Panel defaultSize={40} minSize={20} className="flex flex-col border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
@@ -782,7 +795,107 @@ root.render(
             </PanelGroup>
           </Panel>
 
-        </PanelGroup>
+          </PanelGroup>
+        </div>
+
+        {/* MOBILE CONTENT VIEW (Visible only on md:hidden) */}
+        <div className="flex-1 flex flex-col md:hidden overflow-hidden relative bg-zinc-950">
+          {mobileTab === 'problem' && (
+            <div className="p-5 overflow-y-auto h-full">
+              <h2 className="text-xl font-bold text-white mb-4">Problem Statement</h2>
+              <div className="prose prose-invert prose-sm max-w-none text-zinc-300">
+                <ReactMarkdown>{question.description}</ReactMarkdown>
+              </div>
+              <h3 className="text-md font-bold text-white mt-8 mb-3 border-b border-zinc-800 pb-2">Test Cases</h3>
+              <ul className="space-y-3">
+                {question.testCases?.map((tc, idx) => (
+                  <li key={idx} className="bg-zinc-900 p-4 rounded-xl border border-zinc-800">
+                    <p className="text-xs font-semibold text-zinc-300 leading-relaxed">{tc.description}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {mobileTab === 'editor' && (
+            <div className="flex flex-col h-full">
+              <div className="flex overflow-x-auto gap-2 bg-[#252526] p-2 shrink-0 border-b border-[#333]">
+                {files.map((file, idx) => (
+                  <button
+                    key={file.filename}
+                    onClick={() => setActiveFileIndex(idx)}
+                    className={`px-4 py-2 text-xs font-semibold rounded-md transition-colors ${idx === activeFileIndex ? 'bg-[#1e1e1e] text-indigo-400 shadow-sm border border-zinc-700' : 'text-zinc-400 hover:bg-[#2d2d2d]'}`}
+                  >
+                    {file.filename.split('/').pop()}
+                    {!file.editable && <Lock size={10} className="inline ml-1 text-zinc-500" />}
+                  </button>
+                ))}
+              </div>
+              <div className={`flex-1 relative min-h-0 ${selectedEditorTheme.bg}`}>
+                <Editor
+                  height="100%"
+                  language={activeFile?.language === 'tsx' ? 'typescript' : activeFile?.language || 'typescript'}
+                  path={'mobile-' + activeFile?.filename}
+                  theme={selectedEditorTheme.id === 'github-light' ? 'light' : 'vs-dark'}
+                  value={activeFile?.content || ''}
+                  onChange={handleEditorChange}
+                  beforeMount={handleEditorBeforeMount}
+                  options={{
+                    readOnly: !activeFile?.editable,
+                    minimap: { enabled: false },
+                    fontSize: 14,
+                    fontFamily: "'Fira Code', 'JetBrains Mono', Consolas, monospace",
+                    padding: { top: 16 },
+                    scrollBeyondLastLine: false,
+                    automaticLayout: true
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          {mobileTab === 'console' && (
+            <div className="flex flex-col h-full bg-[#0d0d0d] p-4 overflow-y-auto">
+              {!output && !evaluation && (
+                <div className="text-zinc-600 italic h-full flex flex-col items-center justify-center gap-3">
+                  <Terminal size={32} className="text-zinc-800" />
+                  <span className="text-xs font-bold text-center tracking-wide">RUN OR SUBMIT CODE TO SEE OUTPUT</span>
+                </div>
+              )}
+              {output && !evaluation && (
+                <pre className="whitespace-pre-wrap text-xs leading-relaxed text-zinc-300">{output.message}</pre>
+              )}
+              {evaluation && (
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2 mb-3 pb-3 border-b border-zinc-800">
+                     <span className="text-xs font-bold text-white bg-zinc-900 px-3 py-1.5 rounded-lg border border-zinc-800">{evaluation.summary.passed}/{evaluation.summary.total} Cases Passed</span>
+                  </div>
+                  {evaluation.results.map((result, idx) => (
+                    <div key={idx} className="bg-[#121212] border border-zinc-800 rounded-xl p-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <span className="text-xs font-bold text-white">Test Case {idx + 1}</span>
+                        {result.passed ? <CheckCircle2 size={16} className="text-green-500" /> : <XCircle size={16} className="text-red-500" />}
+                      </div>
+                      <p className="text-[11px] text-zinc-400 mb-3">{result.description}</p>
+                      {!result.passed && result.expectedOutput !== undefined && (
+                        <div className="mt-3 space-y-3 pt-3 border-t border-zinc-800/50">
+                           <div>
+                             <div className="text-[10px] text-zinc-500 uppercase font-bold mb-1">Expected</div>
+                             <pre className="text-[10px] text-zinc-300 bg-zinc-900 p-2.5 rounded-lg overflow-x-auto">{JSON.stringify(result.expectedOutput)}</pre>
+                           </div>
+                           <div>
+                             <div className="text-[10px] text-zinc-500 uppercase font-bold mb-1">Actual</div>
+                             <pre className="text-[10px] text-red-400 bg-red-950/20 border border-red-900/30 p-2.5 rounded-lg overflow-x-auto">{JSON.stringify(result.actualOutput)}</pre>
+                           </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Floating Chat Modal Overlay */}
