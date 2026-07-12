@@ -403,7 +403,7 @@ root.render(
         <PanelGroup orientation="horizontal" id="fcp-workspace-h-v3">
           {/* Left Panel: Description */}
           <Panel defaultSize={40} minSize={20} className="flex flex-col bg-[#1e1e1e] overflow-y-auto">
-            <div className="py-10 px-10 md:px-16 lg:px-20">
+            <div style={{ padding: '2.5rem 5rem' }}>
               <h2 className="text-2xl font-bold text-white mb-6">Problem Statement</h2>
               <div className="prose prose-invert prose-sm max-w-none text-gray-300">
                 <ReactMarkdown>{question.description}</ReactMarkdown>
