@@ -143,3 +143,41 @@ export interface ISubmission {
     content: string;
   }>;
 }
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  text: string;
+  timestamp: string;
+}
+
+export interface EditorTheme {
+  name: string;
+  id: string;
+  bg: string;
+  text: string;
+  accent: string;
+  sidebarBg: string;
+  activeLineBg: string;
+  commentColor: string;
+  keywordColor: string;
+}
+
+export interface UserProfile {
+  userId: string;
+  name: string;
+  bio: string;
+  avatarUrl?: string;
+  role: string;
+  skills: string[];
+}
+
+export interface Revision {
+  id: string;
+  userId: string;
+  challengeId: string;
+  codeState: Record<string, string>;
+  description: string;
+  savedAt: string;
+}
+

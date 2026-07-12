@@ -40,6 +40,14 @@ export const learnerService = {
   },
 
   /**
+   * Get all submissions by the logged-in user
+   */
+  getSubmissions: async (): Promise<any[]> => {
+    const response = await api.get<{ submissions: any[] }>('/submissions');
+    return response.data.submissions;
+  },
+
+  /**
    * Submit code for execution / evaluation against test cases.
    */
   submitExecution: async (
@@ -65,7 +73,25 @@ export const learnerService = {
       }[];
     };
   }> => {
-    const response = await api.post<any>('/execution/submit', {
+    const response = await api.post<{
+      message: string;
+      status: 'pass' | 'fail';
+      output?: string;
+      evaluation?: {
+        summary: { total: number; passed: number; failed: number };
+        results: {
+          index: number;
+          description: string;
+          passed: boolean;
+          input?: any;
+          expectedOutput?: any;
+          actualOutput?: any;
+          executionTimeMs: number;
+          error?: string;
+          visible: boolean;
+        }[];
+      };
+    }>('/execution/submit', {
       questionId,
       files,
       isSubmit,
@@ -91,5 +117,19 @@ export const learnerService = {
       body,
     });
     return response.data;
+  },
+
+  /**
+   * Send question and code state context to AI Chatbot buddy.
+   */
+  askAiAssistant: async (
+    message: string,
+    context: { title: string; description: string; currentCode: string }
+  ): Promise<string> => {
+    const response = await api.post<{ reply: string }>('/ai/ask', {
+      message,
+      context,
+    });
+    return response.data.reply;
   },
 };
