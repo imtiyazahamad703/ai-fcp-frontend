@@ -71,7 +71,7 @@ const CodeWorkspace = () => {
   const [leftTab, setLeftTab] = useState<'instructions' | 'scratchpad' | 'preview'>('instructions');
 
   // Mobile Tab State
-  const [mobileTab, setMobileTab] = useState<'problem' | 'editor' | 'console'>('problem');
+  const [mobileTab, setMobileTab] = useState<'problem' | 'scratchpad' | 'preview' | 'editor' | 'console'>('problem');
 
   // Editor Themes state
   const [selectedEditorTheme, setSelectedEditorTheme] = useState(editorThemes[0]);
@@ -469,10 +469,14 @@ root.render(
       <div className="flex-1 flex overflow-hidden flex-col md:flex-row">
         
         {/* MOBILE TAB NAV (Visible only on md:hidden) */}
-        <div className="md:hidden flex bg-zinc-900 border-b border-zinc-800 shrink-0 shadow-md z-10">
-          <button onClick={() => setMobileTab('problem')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors ${mobileTab === 'problem' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Problem</button>
-          <button onClick={() => setMobileTab('editor')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors ${mobileTab === 'editor' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Editor</button>
-          <button onClick={() => setMobileTab('console')} className={`flex-1 py-3 text-xs font-bold uppercase tracking-wider transition-colors ${mobileTab === 'console' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Console</button>
+        <div className="md:hidden flex overflow-x-auto bg-zinc-900 border-b border-zinc-800 shrink-0 shadow-md z-10 hide-scrollbar">
+          <button onClick={() => setMobileTab('problem')} className={`px-4 py-3 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${mobileTab === 'problem' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Problem</button>
+          <button onClick={() => setMobileTab('scratchpad')} className={`px-4 py-3 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${mobileTab === 'scratchpad' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Scratchpad</button>
+          {hasFrontendFiles && (
+            <button onClick={() => setMobileTab('preview')} className={`px-4 py-3 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${mobileTab === 'preview' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Preview</button>
+          )}
+          <button onClick={() => setMobileTab('editor')} className={`px-4 py-3 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${mobileTab === 'editor' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Editor</button>
+          <button onClick={() => setMobileTab('console')} className={`px-4 py-3 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${mobileTab === 'console' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Console</button>
         </div>
 
         {/* DESKTOP PANEL GROUP (Hidden on mobile) */}
@@ -814,6 +818,82 @@ root.render(
                   </li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          {mobileTab === 'scratchpad' && (
+            <div className="p-5 flex flex-col h-full space-y-4">
+              <div className="flex justify-between items-center pb-2 border-b border-zinc-800 shrink-0">
+                <div>
+                  <h4 className="text-xs font-bold text-zinc-200 flex items-center gap-1.5">
+                    <PenTool size={12} className="text-indigo-500" />
+                    <span>Interactive Scratchpad</span>
+                  </h4>
+                  <p className="text-[10px] text-zinc-400 mt-0.5">Write notes, draft solution structures, or paste helpers</p>
+                </div>
+
+                <button
+                  onClick={handleSaveScratchpad}
+                  disabled={isSavingScratchpad}
+                  className="inline-flex items-center space-x-1.5 px-3 py-1.5 text-[11px] font-bold text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 rounded-xl transition cursor-pointer"
+                >
+                  <Save size={12} />
+                  <span>{isSavingScratchpad ? "Saving..." : "Save Notes"}</span>
+                </button>
+              </div>
+
+              <textarea
+                value={scratchpadContent}
+                onChange={(e) => setScratchpadContent(e.target.value)}
+                className="flex-1 w-full bg-zinc-950 text-zinc-100 border border-zinc-800 rounded-xl p-4 font-mono text-xs focus:ring-1 focus:ring-indigo-500 focus:bg-zinc-900 outline-none resize-none min-h-[300px] leading-relaxed"
+              />
+              <p className="text-[9px] text-zinc-500 flex items-center space-x-1 leading-none shrink-0">
+                <AlertCircle size={10} />
+                <span>Notes are saved instantly to the database and synced on reload.</span>
+              </p>
+            </div>
+          )}
+
+          {mobileTab === 'preview' && hasFrontendFiles && (
+            <div className="h-full flex flex-col bg-white">
+              <div className="bg-zinc-800 text-white text-[10px] font-bold uppercase px-3 py-1.5 flex items-center justify-between">
+                <span>Live Render Panel</span>
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              </div>
+              <div className="flex-1 overflow-hidden relative flex flex-col">
+                <style>{`
+                  .sp-wrapper, .sp-layout {
+                    height: 100% !important;
+                    min-height: 100% !important;
+                    flex: 1 !important;
+                    border-radius: 0 !important;
+                    border: none !important;
+                  }
+                  .sp-preview-container, .sp-preview-iframe {
+                    height: 100% !important;
+                    min-height: 100% !important;
+                    flex: 1 !important;
+                  }
+                `}</style>
+                <SandpackProvider
+                  template="react-ts"
+                  files={sandpackFiles}
+                  theme="light"
+                  customSetup={{
+                    dependencies: {
+                      "axios": "^1.6.0"
+                    }
+                  }}
+                >
+                  <SandpackLayout style={{ flex: 1, height: '100%', minHeight: '100%', width: '100%', borderRadius: 0, border: 'none' }}>
+                    <SandpackPreview
+                      showOpenInCodeSandbox={false}
+                      showRefreshButton={true}
+                      style={{ height: '100%', flex: 1 }}
+                    />
+                  </SandpackLayout>
+                </SandpackProvider>
+              </div>
             </div>
           )}
 
