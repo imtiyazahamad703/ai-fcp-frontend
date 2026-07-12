@@ -248,20 +248,22 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
 
-// --- INJECT MOCKS FOR FULLSTACK DSA ---
+// --- INJECT AXIOS MOCK FOR FULLSTACK DSA ---
 import axios from 'axios';
 
-// 1. Mock Axios
 const createMockMethod = (method) => async (url, configOrData, config) => {
    return new Promise((resolve, reject) => {
       const id = Math.random().toString();
       let data = configOrData;
+      
+      // Handle axios.get(url, config) vs axios.post(url, data, config)
       if (method === 'GET' || method === 'DELETE') {
          data = configOrData?.params || configOrData;
       }
       
       window.parent.postMessage({ type: 'AXIOS_REQUEST', id, url, data, method }, '*');
       
+      // Bug fix #6: Timeout to prevent infinite hang
       const timeout = setTimeout(() => {
          window.removeEventListener('message', listener);
          reject(new Error('Request timed out after 10 seconds. Check your backend code for errors.'));
@@ -284,51 +286,65 @@ axios.get = createMockMethod('GET');
 axios.put = createMockMethod('PUT');
 axios.delete = createMockMethod('DELETE');
 
-// 2. Mock Fetch
+// --- INJECT FETCH MOCK FOR FULLSTACK DSA ---
 const originalFetch = window.fetch;
-window.fetch = async (input, init) => {
-   const url = typeof input === 'string' ? input : (input instanceof Request ? input.url : input);
-   
-   // Only mock /api requests, let others (like Sandpack internals) pass through
-   if (typeof url === 'string' && url.startsWith('/api')) {
-      return new Promise((resolve, reject) => {
-         const id = Math.random().toString();
-         const method = (init?.method || 'GET').toUpperCase();
-         let data = undefined;
-         if (init?.body) {
-            try { data = JSON.parse(init.body); } catch(e) { data = init.body; }
-         }
-         
-         window.parent.postMessage({ type: 'AXIOS_REQUEST', id, url, data, method }, '*');
-         
-         const timeout = setTimeout(() => {
+window.fetch = async (...args) => {
+  const [resource, config] = args;
+  const url = typeof resource === 'string' ? resource : resource.url;
+  
+  // Intercept relative paths and /api/ paths
+  if (url.startsWith('/api/') || url.startsWith('http://localhost') || url.startsWith('/')) {
+    return new Promise((resolve) => {
+      const id = Math.random().toString();
+      const method = config?.method?.toUpperCase() || 'GET';
+      let data = undefined;
+      
+      if (config?.body) {
+        try {
+          data = typeof config.body === 'string' ? JSON.parse(config.body) : config.body;
+        } catch (e) {
+          data = config.body;
+        }
+      }
+      
+      window.parent.postMessage({ type: 'AXIOS_REQUEST', id, url, data, method }, '*');
+      
+      const timeout = setTimeout(() => {
+         window.removeEventListener('message', listener);
+         resolve({
+            ok: false,
+            status: 504,
+            json: async () => ({ message: 'Request timed out after 10 seconds. Check your backend code for errors.' }),
+            text: async () => 'Request timed out'
+         });
+      }, 10000);
+      
+      const listener = (event) => {
+         if (event.data && event.data.type === 'AXIOS_RESPONSE' && event.data.id === id) {
+            clearTimeout(timeout);
             window.removeEventListener('message', listener);
-            reject(new Error('Request timed out after 10 seconds. Check your backend code for errors.'));
-         }, 10000);
-         
-         const listener = (event) => {
-            if (event.data && event.data.type === 'AXIOS_RESPONSE' && event.data.id === id) {
-               clearTimeout(timeout);
-               window.removeEventListener('message', listener);
-               if (event.data.error) {
-                  // Fetch resolves even on HTTP errors, just with ok=false
-                  resolve(new Response(JSON.stringify({ message: event.data.error }), {
-                     status: 400,
-                     headers: { 'Content-Type': 'application/json' }
-                  }));
-               } else {
-                  resolve(new Response(JSON.stringify(event.data.data || {}), {
-                     status: 200,
-                     headers: { 'Content-Type': 'application/json' }
-                  }));
-               }
+            if (event.data.error) {
+               resolve({
+                 ok: false,
+                 status: 400,
+                 json: async () => ({ message: event.data.error }),
+                 text: async () => event.data.error
+               });
+            } else {
+               resolve({
+                 ok: true,
+                 status: 200,
+                 json: async () => event.data.data,
+                 text: async () => JSON.stringify(event.data.data)
+               });
             }
-         };
-         window.addEventListener('message', listener);
-      });
-   }
-   
-   return originalFetch(input, init);
+         }
+      };
+      window.addEventListener('message', listener);
+    });
+  }
+  
+  return originalFetch(...args);
 };
 // ---------------------------------------------
 
