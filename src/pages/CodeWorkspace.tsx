@@ -194,10 +194,11 @@ const CodeWorkspace = () => {
 
     files.forEach(f => {
       let name = '';
-      if (question?.type === 'react') {
+      const qType = question?.type?.toLowerCase();
+      if (qType === 'react') {
         name = f.filename.startsWith('/') ? f.filename : `/${f.filename}`;
         if (name.startsWith('/src/')) name = name.replace('/src', '');
-      } else if (question?.type === 'fullstack' && f.filename.startsWith('frontend/src/')) {
+      } else if (qType === 'fullstack' && f.filename.startsWith('frontend/src/')) {
         name = f.filename.replace('frontend/src', '');
       }
 
@@ -293,11 +294,13 @@ root.render(
 
     console.log("Sandpack Files Generated:", spFiles);
     return spFiles;
-  }, [files]);
+  }, [files, question]);
 
   // Bug fix #7: Show Sandpack preview when question is react or has frontend files
   const hasFrontendFiles = useMemo(() => {
-    if (question?.type === 'react') return true;
+    const qType = question?.type?.toLowerCase();
+    console.log("hasFrontendFiles check => question?.type:", qType, "files:", files.map(f => f.filename));
+    if (qType === 'react') return true;
     return files.some(f => f.filename.startsWith('frontend/src/') && f.filename.endsWith('.tsx'));
   }, [files, question]);
 
