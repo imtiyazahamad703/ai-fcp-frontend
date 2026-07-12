@@ -956,9 +956,9 @@ root.render(
                       options={{
                         readOnly: !activeFile?.editable,
                         minimap: { enabled: false },
-                        fontSize: 14,
+                        fontSize: 11,
                         fontFamily: "'Fira Code', 'JetBrains Mono', Consolas, monospace",
-                        padding: { top: 16 },
+                        padding: { top: 8 },
                         scrollBeyondLastLine: false,
                         automaticLayout: true
                       }}
