@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Code2, Layers, BookOpen, ArrowRight, CheckCircle2 } from "lucide-react";
 import type { IQuestion } from "../types";
 
@@ -17,6 +17,14 @@ export const ChallengeList = ({
   const [categoryFilter, setCategoryFilter] = useState<string>("All");
   const [difficultyFilter, setDifficultyFilter] = useState<string>("All");
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9;
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, categoryFilter, difficultyFilter]);
+
   const filteredChallenges = challenges.filter((c) => {
     const matchesSearch = c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       c.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -28,6 +36,12 @@ export const ChallengeList = ({
     
     return matchesSearch && matchesCategory && matchesDifficulty;
   });
+
+  const totalPages = Math.ceil(filteredChallenges.length / itemsPerPage);
+  const paginatedChallenges = filteredChallenges.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   const getDifficultyColor = (diff: string) => {
     switch (diff) {
@@ -115,7 +129,7 @@ export const ChallengeList = ({
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredChallenges.map((challenge) => {
+          {paginatedChallenges.map((challenge) => {
             const challengeId = challenge._id || '';
             const isCompleted = completedIds.includes(challengeId);
             const fileCount = challenge.starterCode?.length || 0;
@@ -178,6 +192,31 @@ export const ChallengeList = ({
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-8 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+          <span className="text-sm text-zinc-500 dark:text-zinc-400">
+            Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredChallenges.length)} of {filteredChallenges.length} challenges
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 text-xs font-bold rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1.5 text-xs font-bold rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
     </div>
