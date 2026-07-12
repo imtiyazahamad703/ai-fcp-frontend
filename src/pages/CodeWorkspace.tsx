@@ -816,7 +816,7 @@ root.render(
         </div>
 
         {/* MOBILE CONTENT VIEW (Visible only on md:hidden) */}
-        <div className="flex-1 flex flex-col md:hidden overflow-hidden relative bg-zinc-950">
+        <div className="flex-1 flex flex-col md:hidden overflow-hidden relative bg-zinc-950 w-full max-w-[100vw]">
           
           {/* ----- INFO SCREEN ----- */}
           {mobileMainScreen === 'info' && (
@@ -931,7 +931,7 @@ root.render(
           {mobileMainScreen === 'code' && (
             <div className="flex-1 flex flex-col min-h-0 relative pb-[76px]">
               {mobileCodeTab === 'editor' && (
-                <div className="flex flex-col h-full">
+                <div className="flex flex-col h-full w-full overflow-hidden">
                   <div className="flex overflow-x-auto gap-2 bg-[#252526] p-2 shrink-0 border-b border-[#333]">
                     {files.map((file, idx) => (
                       <button
@@ -944,7 +944,7 @@ root.render(
                       </button>
                     ))}
                   </div>
-                  <div className={`flex-1 relative min-h-0 ${selectedEditorTheme.bg}`}>
+                  <div className={`flex-1 relative min-h-0 w-full overflow-hidden ${selectedEditorTheme.bg}`}>
                     <Editor
                       height="100%"
                       language={activeFile?.language === 'tsx' ? 'typescript' : activeFile?.language || 'typescript'}
