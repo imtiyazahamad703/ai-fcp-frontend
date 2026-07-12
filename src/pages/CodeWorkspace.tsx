@@ -248,22 +248,20 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
 
-// --- INJECT AXIOS MOCK FOR FULLSTACK DSA ---
+// --- INJECT MOCKS FOR FULLSTACK DSA ---
 import axios from 'axios';
 
+// 1. Mock Axios
 const createMockMethod = (method) => async (url, configOrData, config) => {
    return new Promise((resolve, reject) => {
       const id = Math.random().toString();
       let data = configOrData;
-      
-      // Handle axios.get(url, config) vs axios.post(url, data, config)
       if (method === 'GET' || method === 'DELETE') {
          data = configOrData?.params || configOrData;
       }
       
       window.parent.postMessage({ type: 'AXIOS_REQUEST', id, url, data, method }, '*');
       
-      // Bug fix #6: Timeout to prevent infinite hang
       const timeout = setTimeout(() => {
          window.removeEventListener('message', listener);
          reject(new Error('Request timed out after 10 seconds. Check your backend code for errors.'));
@@ -285,6 +283,53 @@ axios.post = createMockMethod('POST');
 axios.get = createMockMethod('GET');
 axios.put = createMockMethod('PUT');
 axios.delete = createMockMethod('DELETE');
+
+// 2. Mock Fetch
+const originalFetch = window.fetch;
+window.fetch = async (input, init) => {
+   const url = typeof input === 'string' ? input : (input instanceof Request ? input.url : input);
+   
+   // Only mock /api requests, let others (like Sandpack internals) pass through
+   if (typeof url === 'string' && url.startsWith('/api')) {
+      return new Promise((resolve, reject) => {
+         const id = Math.random().toString();
+         const method = (init?.method || 'GET').toUpperCase();
+         let data = undefined;
+         if (init?.body) {
+            try { data = JSON.parse(init.body); } catch(e) { data = init.body; }
+         }
+         
+         window.parent.postMessage({ type: 'AXIOS_REQUEST', id, url, data, method }, '*');
+         
+         const timeout = setTimeout(() => {
+            window.removeEventListener('message', listener);
+            reject(new Error('Request timed out after 10 seconds. Check your backend code for errors.'));
+         }, 10000);
+         
+         const listener = (event) => {
+            if (event.data && event.data.type === 'AXIOS_RESPONSE' && event.data.id === id) {
+               clearTimeout(timeout);
+               window.removeEventListener('message', listener);
+               if (event.data.error) {
+                  // Fetch resolves even on HTTP errors, just with ok=false
+                  resolve(new Response(JSON.stringify({ message: event.data.error }), {
+                     status: 400,
+                     headers: { 'Content-Type': 'application/json' }
+                  }));
+               } else {
+                  resolve(new Response(JSON.stringify(event.data.data || {}), {
+                     status: 200,
+                     headers: { 'Content-Type': 'application/json' }
+                  }));
+               }
+            }
+         };
+         window.addEventListener('message', listener);
+      });
+   }
+   
+   return originalFetch(input, init);
+};
 // ---------------------------------------------
 
 import * as AppModule from './App';
