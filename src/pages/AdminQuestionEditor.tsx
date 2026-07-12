@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
+import ReactMarkdown from 'react-markdown';
 import { AdminLayout } from '../layouts/AdminLayout';
 import { adminService } from '../services/admin.service';
 import { CodeReviewEditor } from '../features/admin/CodeReviewEditor';
@@ -131,8 +132,7 @@ const AdminQuestionEditor = () => {
           <div className="bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-[var(--radius-lg)] p-5">
             <h3 className="font-semibold text-[var(--color-text-primary)] mb-3 border-b border-[var(--color-border)] pb-2">Problem Description</h3>
             <div className="prose prose-invert prose-sm max-w-none text-[var(--color-text-secondary)]">
-              {/* In a real app we would use react-markdown here */}
-              <pre className="whitespace-pre-wrap font-sans">{question.description}</pre>
+              <ReactMarkdown>{question.description}</ReactMarkdown>
             </div>
           </div>
           
