@@ -17,7 +17,8 @@ import {
   Terminal, 
   AlertCircle,
   ArrowLeft,
-  Lock
+  Lock,
+  Code
 } from "lucide-react";
 import { learnerService } from '../services/learner.service';
 import { notesService } from '../services/notes.service';
@@ -70,8 +71,10 @@ const CodeWorkspace = () => {
   // Layout Tab selection on the left
   const [leftTab, setLeftTab] = useState<'instructions' | 'scratchpad' | 'preview'>('instructions');
 
-  // Mobile Tab State
-  const [mobileTab, setMobileTab] = useState<'problem' | 'scratchpad' | 'preview' | 'editor' | 'console'>('problem');
+  // Mobile Dual-Screen State
+  const [mobileMainScreen, setMobileMainScreen] = useState<'info' | 'code'>('info');
+  const [mobileInfoTab, setMobileInfoTab] = useState<'problem' | 'scratchpad' | 'preview'>('problem');
+  const [mobileCodeTab, setMobileCodeTab] = useState<'editor' | 'console'>('editor');
 
   // Editor Themes state
   const [selectedEditorTheme, setSelectedEditorTheme] = useState(editorThemes[0]);
@@ -452,32 +455,42 @@ root.render(
 
           <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-800" />
 
-          {/* Action trigger buttons */}
-          <Button variant="secondary" onClick={() => handleSubmit(false)} isLoading={actionType === 'run'} disabled={actionType !== 'idle'}>
-            <Play size={12} className="inline mr-1" fill="currentColor" />
-            {actionType === 'run' ? 'Running...' : 'Run Code'}
-          </Button>
+          {/* Action trigger buttons (Hidden on mobile) */}
+          <div className="hidden md:flex items-center space-x-3">
+            <Button variant="secondary" onClick={() => handleSubmit(false)} isLoading={actionType === 'run'} disabled={actionType !== 'idle'}>
+              <Play size={12} className="inline mr-1" fill="currentColor" />
+              {actionType === 'run' ? 'Running...' : 'Run Code'}
+            </Button>
 
-          <Button variant="primary" onClick={() => handleSubmit(true)} isLoading={actionType === 'submit'} disabled={actionType !== 'idle'}>
-            <Sparkles size={12} className="inline mr-1" />
-            {actionType === 'submit' ? 'Submitting...' : 'Submit Code'}
-          </Button>
+            <Button variant="primary" onClick={() => handleSubmit(true)} isLoading={actionType === 'submit'} disabled={actionType !== 'idle'}>
+              <Sparkles size={12} className="inline mr-1" />
+              {actionType === 'submit' ? 'Submitting...' : 'Submit Code'}
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Main Split-Screen Panel Group */}
       <div className="flex-1 flex overflow-hidden flex-col md:flex-row">
         
-        {/* MOBILE TAB NAV (Visible only on md:hidden) */}
-        <div className="md:hidden flex overflow-x-auto bg-zinc-900 border-b border-zinc-800 shrink-0 shadow-md z-10 hide-scrollbar">
-          <button onClick={() => setMobileTab('problem')} className={`px-4 py-3 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${mobileTab === 'problem' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Problem</button>
-          <button onClick={() => setMobileTab('scratchpad')} className={`px-4 py-3 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${mobileTab === 'scratchpad' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Scratchpad</button>
-          {hasFrontendFiles && (
-            <button onClick={() => setMobileTab('preview')} className={`px-4 py-3 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${mobileTab === 'preview' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Preview</button>
-          )}
-          <button onClick={() => setMobileTab('editor')} className={`px-4 py-3 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${mobileTab === 'editor' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Editor</button>
-          <button onClick={() => setMobileTab('console')} className={`px-4 py-3 text-[11px] font-bold uppercase tracking-wider whitespace-nowrap transition-colors ${mobileTab === 'console' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Console</button>
-        </div>
+        {/* MOBILE INFO TABS (Visible only on md:hidden & when mobileMainScreen is 'info') */}
+        {mobileMainScreen === 'info' && (
+          <div className="md:hidden flex bg-zinc-900 border-b border-zinc-800 shrink-0 shadow-md z-10 w-full">
+            <button onClick={() => setMobileInfoTab('problem')} className={`flex-1 py-3 text-[11px] font-bold uppercase tracking-wider transition-colors ${mobileInfoTab === 'problem' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Problem</button>
+            <button onClick={() => setMobileInfoTab('scratchpad')} className={`flex-1 py-3 text-[11px] font-bold uppercase tracking-wider transition-colors ${mobileInfoTab === 'scratchpad' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Scratchpad</button>
+            {hasFrontendFiles && (
+              <button onClick={() => setMobileInfoTab('preview')} className={`flex-1 py-3 text-[11px] font-bold uppercase tracking-wider transition-colors ${mobileInfoTab === 'preview' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Preview</button>
+            )}
+          </div>
+        )}
+
+        {/* MOBILE CODE TABS (Visible only on md:hidden & when mobileMainScreen is 'code') */}
+        {mobileMainScreen === 'code' && (
+          <div className="md:hidden flex bg-zinc-900 border-b border-zinc-800 shrink-0 shadow-md z-10 w-full">
+            <button onClick={() => setMobileCodeTab('editor')} className={`flex-1 py-3 text-[11px] font-bold uppercase tracking-wider transition-colors ${mobileCodeTab === 'editor' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Editor</button>
+            <button onClick={() => setMobileCodeTab('console')} className={`flex-1 py-3 text-[11px] font-bold uppercase tracking-wider transition-colors ${mobileCodeTab === 'console' ? 'text-indigo-400 border-b-2 border-indigo-500 bg-zinc-800/50' : 'text-zinc-500 hover:text-zinc-300'}`}>Console</button>
+          </div>
+        )}
 
         {/* DESKTOP PANEL GROUP (Hidden on mobile) */}
         <div className="hidden md:flex flex-1 h-full w-full">
@@ -804,175 +817,225 @@ root.render(
 
         {/* MOBILE CONTENT VIEW (Visible only on md:hidden) */}
         <div className="flex-1 flex flex-col md:hidden overflow-hidden relative bg-zinc-950">
-          {mobileTab === 'problem' && (
-            <div className="p-5 overflow-y-auto h-full">
-              <h2 className="text-xl font-bold text-white mb-4">Problem Statement</h2>
-              <div className="prose prose-invert prose-sm max-w-none text-zinc-300">
-                <ReactMarkdown>{question.description}</ReactMarkdown>
-              </div>
-              <h3 className="text-md font-bold text-white mt-8 mb-3 border-b border-zinc-800 pb-2">Test Cases</h3>
-              <ul className="space-y-3">
-                {question.testCases?.map((tc, idx) => (
-                  <li key={idx} className="bg-zinc-900 p-4 rounded-xl border border-zinc-800">
-                    <p className="text-xs font-semibold text-zinc-300 leading-relaxed">{tc.description}</p>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {mobileTab === 'scratchpad' && (
-            <div className="p-5 flex flex-col h-full space-y-4">
-              <div className="flex justify-between items-center pb-2 border-b border-zinc-800 shrink-0">
-                <div>
-                  <h4 className="text-xs font-bold text-zinc-200 flex items-center gap-1.5">
-                    <PenTool size={12} className="text-indigo-500" />
-                    <span>Interactive Scratchpad</span>
-                  </h4>
-                  <p className="text-[10px] text-zinc-400 mt-0.5">Write notes, draft solution structures, or paste helpers</p>
+          
+          {/* ----- INFO SCREEN ----- */}
+          {mobileMainScreen === 'info' && (
+            <div className="flex-1 flex flex-col min-h-0 relative pb-[76px]">
+              {mobileInfoTab === 'problem' && (
+                <div className="p-5 overflow-y-auto h-full">
+                  <h2 className="text-xl font-bold text-white mb-4">Problem Statement</h2>
+                  <div className="prose prose-invert prose-sm max-w-none text-zinc-300">
+                    <ReactMarkdown>{question.description}</ReactMarkdown>
+                  </div>
+                  <h3 className="text-md font-bold text-white mt-8 mb-3 border-b border-zinc-800 pb-2">Test Cases</h3>
+                  <ul className="space-y-3">
+                    {question.testCases?.map((tc, idx) => (
+                      <li key={idx} className="bg-zinc-900 p-4 rounded-xl border border-zinc-800">
+                        <p className="text-xs font-semibold text-zinc-300 leading-relaxed">{tc.description}</p>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
+              )}
 
-                <button
-                  onClick={handleSaveScratchpad}
-                  disabled={isSavingScratchpad}
-                  className="inline-flex items-center space-x-1.5 px-3 py-1.5 text-[11px] font-bold text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 rounded-xl transition cursor-pointer"
+              {mobileInfoTab === 'scratchpad' && (
+                <div className="p-5 flex flex-col h-full space-y-4">
+                  <div className="flex justify-between items-center pb-2 border-b border-zinc-800 shrink-0">
+                    <div>
+                      <h4 className="text-xs font-bold text-zinc-200 flex items-center gap-1.5">
+                        <PenTool size={12} className="text-indigo-500" />
+                        <span>Interactive Scratchpad</span>
+                      </h4>
+                      <p className="text-[10px] text-zinc-400 mt-0.5">Write notes, draft solution structures, or paste helpers</p>
+                    </div>
+
+                    <button
+                      onClick={handleSaveScratchpad}
+                      disabled={isSavingScratchpad}
+                      className="inline-flex items-center space-x-1.5 px-3 py-1.5 text-[11px] font-bold text-white bg-green-600 hover:bg-green-700 disabled:opacity-50 rounded-xl transition cursor-pointer"
+                    >
+                      <Save size={12} />
+                      <span>{isSavingScratchpad ? "Saving..." : "Save Notes"}</span>
+                    </button>
+                  </div>
+
+                  <textarea
+                    value={scratchpadContent}
+                    onChange={(e) => setScratchpadContent(e.target.value)}
+                    className="flex-1 w-full bg-zinc-950 text-zinc-100 border border-zinc-800 rounded-xl p-4 font-mono text-xs focus:ring-1 focus:ring-indigo-500 focus:bg-zinc-900 outline-none resize-none min-h-[300px] leading-relaxed"
+                  />
+                  <p className="text-[9px] text-zinc-500 flex items-center space-x-1 leading-none shrink-0">
+                    <AlertCircle size={10} />
+                    <span>Notes are saved instantly to the database and synced on reload.</span>
+                  </p>
+                </div>
+              )}
+
+              {mobileInfoTab === 'preview' && hasFrontendFiles && (
+                <div className="h-full flex flex-col bg-white">
+                  <div className="bg-zinc-800 text-white text-[10px] font-bold uppercase px-3 py-1.5 flex items-center justify-between">
+                    <span>Live Render Panel</span>
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  </div>
+                  <div className="flex-1 overflow-hidden relative flex flex-col">
+                    <style>{`
+                      .sp-wrapper, .sp-layout {
+                        height: 100% !important;
+                        min-height: 100% !important;
+                        flex: 1 !important;
+                        border-radius: 0 !important;
+                        border: none !important;
+                      }
+                      .sp-preview-container, .sp-preview-iframe {
+                        height: 100% !important;
+                        min-height: 100% !important;
+                        flex: 1 !important;
+                      }
+                    `}</style>
+                    <SandpackProvider
+                      template="react-ts"
+                      files={sandpackFiles}
+                      theme="light"
+                      customSetup={{
+                        dependencies: {
+                          "axios": "^1.6.0"
+                        }
+                      }}
+                    >
+                      <SandpackLayout style={{ flex: 1, height: '100%', minHeight: '100%', width: '100%', borderRadius: 0, border: 'none' }}>
+                        <SandpackPreview
+                          showOpenInCodeSandbox={false}
+                          showRefreshButton={true}
+                          style={{ height: '100%', flex: 1 }}
+                        />
+                      </SandpackLayout>
+                    </SandpackProvider>
+                  </div>
+                </div>
+              )}
+
+              {/* Bottom Sticky Action Bar for Info Screen */}
+              <div className="absolute bottom-0 left-0 right-0 p-3 bg-zinc-900/95 backdrop-blur-md border-t border-zinc-800 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] z-20">
+                <button 
+                  onClick={() => setMobileMainScreen('code')}
+                  className="w-full flex items-center justify-center gap-2 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-600/20 active:scale-[0.98] transition-transform"
                 >
-                  <Save size={12} />
-                  <span>{isSavingScratchpad ? "Saving..." : "Save Notes"}</span>
+                  <Code size={18} />
+                  <span>Open Code Editor</span>
                 </button>
               </div>
-
-              <textarea
-                value={scratchpadContent}
-                onChange={(e) => setScratchpadContent(e.target.value)}
-                className="flex-1 w-full bg-zinc-950 text-zinc-100 border border-zinc-800 rounded-xl p-4 font-mono text-xs focus:ring-1 focus:ring-indigo-500 focus:bg-zinc-900 outline-none resize-none min-h-[300px] leading-relaxed"
-              />
-              <p className="text-[9px] text-zinc-500 flex items-center space-x-1 leading-none shrink-0">
-                <AlertCircle size={10} />
-                <span>Notes are saved instantly to the database and synced on reload.</span>
-              </p>
             </div>
           )}
 
-          {mobileTab === 'preview' && hasFrontendFiles && (
-            <div className="h-full flex flex-col bg-white">
-              <div className="bg-zinc-800 text-white text-[10px] font-bold uppercase px-3 py-1.5 flex items-center justify-between">
-                <span>Live Render Panel</span>
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              </div>
-              <div className="flex-1 overflow-hidden relative flex flex-col">
-                <style>{`
-                  .sp-wrapper, .sp-layout {
-                    height: 100% !important;
-                    min-height: 100% !important;
-                    flex: 1 !important;
-                    border-radius: 0 !important;
-                    border: none !important;
-                  }
-                  .sp-preview-container, .sp-preview-iframe {
-                    height: 100% !important;
-                    min-height: 100% !important;
-                    flex: 1 !important;
-                  }
-                `}</style>
-                <SandpackProvider
-                  template="react-ts"
-                  files={sandpackFiles}
-                  theme="light"
-                  customSetup={{
-                    dependencies: {
-                      "axios": "^1.6.0"
-                    }
-                  }}
-                >
-                  <SandpackLayout style={{ flex: 1, height: '100%', minHeight: '100%', width: '100%', borderRadius: 0, border: 'none' }}>
-                    <SandpackPreview
-                      showOpenInCodeSandbox={false}
-                      showRefreshButton={true}
-                      style={{ height: '100%', flex: 1 }}
-                    />
-                  </SandpackLayout>
-                </SandpackProvider>
-              </div>
-            </div>
-          )}
-
-          {mobileTab === 'editor' && (
-            <div className="flex flex-col h-full">
-              <div className="flex overflow-x-auto gap-2 bg-[#252526] p-2 shrink-0 border-b border-[#333]">
-                {files.map((file, idx) => (
-                  <button
-                    key={file.filename}
-                    onClick={() => setActiveFileIndex(idx)}
-                    className={`px-4 py-2 text-xs font-semibold rounded-md transition-colors ${idx === activeFileIndex ? 'bg-[#1e1e1e] text-indigo-400 shadow-sm border border-zinc-700' : 'text-zinc-400 hover:bg-[#2d2d2d]'}`}
-                  >
-                    {file.filename.split('/').pop()}
-                    {!file.editable && <Lock size={10} className="inline ml-1 text-zinc-500" />}
-                  </button>
-                ))}
-              </div>
-              <div className={`flex-1 relative min-h-0 ${selectedEditorTheme.bg}`}>
-                <Editor
-                  height="100%"
-                  language={activeFile?.language === 'tsx' ? 'typescript' : activeFile?.language || 'typescript'}
-                  path={'mobile-' + activeFile?.filename}
-                  theme={selectedEditorTheme.id === 'github-light' ? 'light' : 'vs-dark'}
-                  value={activeFile?.content || ''}
-                  onChange={handleEditorChange}
-                  beforeMount={handleEditorBeforeMount}
-                  options={{
-                    readOnly: !activeFile?.editable,
-                    minimap: { enabled: false },
-                    fontSize: 14,
-                    fontFamily: "'Fira Code', 'JetBrains Mono', Consolas, monospace",
-                    padding: { top: 16 },
-                    scrollBeyondLastLine: false,
-                    automaticLayout: true
-                  }}
-                />
-              </div>
-            </div>
-          )}
-
-          {mobileTab === 'console' && (
-            <div className="flex flex-col h-full bg-[#0d0d0d] p-4 overflow-y-auto">
-              {!output && !evaluation && (
-                <div className="text-zinc-600 italic h-full flex flex-col items-center justify-center gap-3">
-                  <Terminal size={32} className="text-zinc-800" />
-                  <span className="text-xs font-bold text-center tracking-wide">RUN OR SUBMIT CODE TO SEE OUTPUT</span>
-                </div>
-              )}
-              {output && !evaluation && (
-                <pre className="whitespace-pre-wrap text-xs leading-relaxed text-zinc-300">{output.message}</pre>
-              )}
-              {evaluation && (
-                <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-2 mb-3 pb-3 border-b border-zinc-800">
-                     <span className="text-xs font-bold text-white bg-zinc-900 px-3 py-1.5 rounded-lg border border-zinc-800">{evaluation.summary.passed}/{evaluation.summary.total} Cases Passed</span>
+          {/* ----- CODE SCREEN ----- */}
+          {mobileMainScreen === 'code' && (
+            <div className="flex-1 flex flex-col min-h-0 relative pb-[76px]">
+              {mobileCodeTab === 'editor' && (
+                <div className="flex flex-col h-full">
+                  <div className="flex overflow-x-auto gap-2 bg-[#252526] p-2 shrink-0 border-b border-[#333]">
+                    {files.map((file, idx) => (
+                      <button
+                        key={file.filename}
+                        onClick={() => setActiveFileIndex(idx)}
+                        className={`px-4 py-2 text-xs font-semibold rounded-md transition-colors ${idx === activeFileIndex ? 'bg-[#1e1e1e] text-indigo-400 shadow-sm border border-zinc-700' : 'text-zinc-400 hover:bg-[#2d2d2d]'}`}
+                      >
+                        {file.filename.split('/').pop()}
+                        {!file.editable && <Lock size={10} className="inline ml-1 text-zinc-500" />}
+                      </button>
+                    ))}
                   </div>
-                  {evaluation.results.map((result, idx) => (
-                    <div key={idx} className="bg-[#121212] border border-zinc-800 rounded-xl p-4">
-                      <div className="flex justify-between items-center mb-3">
-                        <span className="text-xs font-bold text-white">Test Case {idx + 1}</span>
-                        {result.passed ? <CheckCircle2 size={16} className="text-green-500" /> : <XCircle size={16} className="text-red-500" />}
-                      </div>
-                      <p className="text-[11px] text-zinc-400 mb-3">{result.description}</p>
-                      {!result.passed && result.expectedOutput !== undefined && (
-                        <div className="mt-3 space-y-3 pt-3 border-t border-zinc-800/50">
-                           <div>
-                             <div className="text-[10px] text-zinc-500 uppercase font-bold mb-1">Expected</div>
-                             <pre className="text-[10px] text-zinc-300 bg-zinc-900 p-2.5 rounded-lg overflow-x-auto">{JSON.stringify(result.expectedOutput)}</pre>
-                           </div>
-                           <div>
-                             <div className="text-[10px] text-zinc-500 uppercase font-bold mb-1">Actual</div>
-                             <pre className="text-[10px] text-red-400 bg-red-950/20 border border-red-900/30 p-2.5 rounded-lg overflow-x-auto">{JSON.stringify(result.actualOutput)}</pre>
-                           </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                  <div className={`flex-1 relative min-h-0 ${selectedEditorTheme.bg}`}>
+                    <Editor
+                      height="100%"
+                      language={activeFile?.language === 'tsx' ? 'typescript' : activeFile?.language || 'typescript'}
+                      path={'mobile-' + activeFile?.filename}
+                      theme={selectedEditorTheme.id === 'github-light' ? 'light' : 'vs-dark'}
+                      value={activeFile?.content || ''}
+                      onChange={handleEditorChange}
+                      beforeMount={handleEditorBeforeMount}
+                      options={{
+                        readOnly: !activeFile?.editable,
+                        minimap: { enabled: false },
+                        fontSize: 14,
+                        fontFamily: "'Fira Code', 'JetBrains Mono', Consolas, monospace",
+                        padding: { top: 16 },
+                        scrollBeyondLastLine: false,
+                        automaticLayout: true
+                      }}
+                    />
+                  </div>
                 </div>
               )}
+
+              {mobileCodeTab === 'console' && (
+                <div className="flex flex-col h-full bg-[#0d0d0d] p-4 overflow-y-auto">
+                  {!output && !evaluation && (
+                    <div className="text-zinc-600 italic h-full flex flex-col items-center justify-center gap-3">
+                      <Terminal size={32} className="text-zinc-800" />
+                      <span className="text-xs font-bold text-center tracking-wide">RUN OR SUBMIT CODE TO SEE OUTPUT</span>
+                    </div>
+                  )}
+                  {output && !evaluation && (
+                    <pre className="whitespace-pre-wrap text-xs leading-relaxed text-zinc-300">{output.message}</pre>
+                  )}
+                  {evaluation && (
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-2 mb-3 pb-3 border-b border-zinc-800">
+                         <span className="text-xs font-bold text-white bg-zinc-900 px-3 py-1.5 rounded-lg border border-zinc-800">{evaluation.summary.passed}/{evaluation.summary.total} Cases Passed</span>
+                      </div>
+                      {evaluation.results.map((result, idx) => (
+                        <div key={idx} className="bg-[#121212] border border-zinc-800 rounded-xl p-4">
+                          <div className="flex justify-between items-center mb-3">
+                            <span className="text-xs font-bold text-white">Test Case {idx + 1}</span>
+                            {result.passed ? <CheckCircle2 size={16} className="text-green-500" /> : <XCircle size={16} className="text-red-500" />}
+                          </div>
+                          <p className="text-[11px] text-zinc-400 mb-3">{result.description}</p>
+                          {!result.passed && result.expectedOutput !== undefined && (
+                            <div className="mt-3 space-y-3 pt-3 border-t border-zinc-800/50">
+                               <div>
+                                 <div className="text-[10px] text-zinc-500 uppercase font-bold mb-1">Expected</div>
+                                 <pre className="text-[10px] text-zinc-300 bg-zinc-900 p-2.5 rounded-lg overflow-x-auto">{JSON.stringify(result.expectedOutput)}</pre>
+                               </div>
+                               <div>
+                                 <div className="text-[10px] text-zinc-500 uppercase font-bold mb-1">Actual</div>
+                                 <pre className="text-[10px] text-red-400 bg-red-950/20 border border-red-900/30 p-2.5 rounded-lg overflow-x-auto">{JSON.stringify(result.actualOutput)}</pre>
+                               </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Bottom Sticky Action Bar for Code Screen */}
+              <div className="absolute bottom-0 left-0 right-0 p-3 bg-zinc-900/95 backdrop-blur-md border-t border-zinc-800 shadow-[0_-10px_30px_rgba(0,0,0,0.5)] z-20 flex gap-2">
+                <button 
+                  onClick={() => setMobileMainScreen('info')}
+                  className="flex-1 py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold rounded-xl active:scale-[0.98] transition-transform text-[11px] flex items-center justify-center gap-1.5 border border-zinc-700"
+                >
+                  <ArrowLeft size={14} />
+                  <span className="hidden sm:inline">Problem</span>
+                  <span className="sm:hidden">Info</span>
+                </button>
+                <button 
+                  onClick={() => handleSubmit(false)}
+                  disabled={actionType !== 'idle'}
+                  className="flex-1 py-3 bg-zinc-100 hover:bg-white text-zinc-900 font-bold rounded-xl active:scale-[0.98] transition-transform text-[11px] flex items-center justify-center gap-1.5 shadow-md disabled:opacity-50"
+                >
+                  <Play size={12} className={actionType === 'run' ? "animate-pulse" : ""} fill="currentColor" />
+                  <span>{actionType === 'run' ? 'Running' : 'Run'}</span>
+                </button>
+                <button 
+                  onClick={() => handleSubmit(true)}
+                  disabled={actionType !== 'idle'}
+                  className="flex-[1.2] py-3 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl active:scale-[0.98] transition-transform text-[11px] flex items-center justify-center gap-1.5 shadow-lg shadow-indigo-600/20 disabled:opacity-50"
+                >
+                  <Sparkles size={12} className={actionType === 'submit' ? "animate-spin" : ""} />
+                  <span>{actionType === 'submit' ? 'Submitting' : 'Submit'}</span>
+                </button>
+              </div>
             </div>
           )}
         </div>
