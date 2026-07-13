@@ -5,17 +5,19 @@ import type { IQuestion } from "../types";
 interface ChallengeListProps {
   challenges: IQuestion[];
   completedIds: string[];
+  submissions?: any[];
   onSelectChallenge: (challenge: IQuestion) => void;
 }
 
 export const ChallengeList = ({
   challenges,
   completedIds,
+  submissions,
   onSelectChallenge,
 }: ChallengeListProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>("All");
-  const [difficultyFilter, setDifficultyFilter] = useState<string>("All");
+  const [attemptFilter, setAttemptFilter] = useState<string>("All");
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
@@ -23,7 +25,7 @@ export const ChallengeList = ({
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, categoryFilter, difficultyFilter]);
+  }, [searchTerm, categoryFilter, attemptFilter]);
 
   const filteredChallenges = challenges.filter((c) => {
     const matchesSearch = c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -32,9 +34,16 @@ export const ChallengeList = ({
     // Map category
     const category = c.type === 'react' ? 'Frontend' : 'Fullstack';
     const matchesCategory = categoryFilter === "All" || category === categoryFilter;
-    const matchesDifficulty = difficultyFilter === "All" || c.difficulty === difficultyFilter;
     
-    return matchesSearch && matchesCategory && matchesDifficulty;
+    // Map Attempt status
+    const submission = submissions?.find(s => s.questionId === c._id || s.questionId?.toString() === c._id);
+    const attempts = submission?.attempts || 0;
+    
+    let matchesAttempt = true;
+    if (attemptFilter === "Attempted") matchesAttempt = attempts > 0;
+    else if (attemptFilter === "Unattempted") matchesAttempt = attempts === 0;
+    
+    return matchesSearch && matchesCategory && matchesAttempt;
   });
 
   const totalPages = Math.ceil(filteredChallenges.length / itemsPerPage);
@@ -43,18 +52,7 @@ export const ChallengeList = ({
     currentPage * itemsPerPage
   );
 
-  const getDifficultyColor = (diff: string) => {
-    switch (diff) {
-      case "easy":
-        return "text-green-600 bg-green-50 dark:bg-green-950/20 dark:text-green-400 border-green-200 dark:border-green-800/30";
-      case "medium":
-        return "text-amber-600 bg-amber-50 dark:bg-amber-950/20 dark:text-amber-400 border-amber-200 dark:border-amber-800/30";
-      case "hard":
-        return "text-red-600 bg-red-50 dark:bg-red-950/20 dark:text-red-400 border-red-200 dark:border-red-800/30";
-      default:
-        return "text-zinc-600 bg-zinc-50 border-zinc-200";
-    }
-  };
+
 
   const getCategoryColor = (cat: string) => {
     switch (cat) {
@@ -106,16 +104,15 @@ export const ChallengeList = ({
             <option value="Fullstack">Fullstack Only</option>
           </select>
 
-          {/* Difficulty Filter */}
+          {/* Attempt Status Filter */}
           <select
-            value={difficultyFilter}
-            onChange={(e) => setDifficultyFilter(e.target.value)}
+            value={attemptFilter}
+            onChange={(e) => setAttemptFilter(e.target.value)}
             className="text-xs font-semibold bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg px-3 py-2 outline-none text-zinc-700 dark:text-zinc-300 w-full md:w-auto"
           >
-            <option value="All">All Difficulties</option>
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
+            <option value="All">All Statuses</option>
+            <option value="Attempted">Attempted</option>
+            <option value="Unattempted">Unattempted</option>
           </select>
         </div>
       </div>
@@ -135,6 +132,8 @@ export const ChallengeList = ({
             const fileCount = challenge.starterCode?.length || 0;
             const testCount = challenge.testCases?.length || 0;
             const category = challenge.type === 'react' ? 'Frontend' : 'Fullstack';
+            const submission = submissions?.find(s => s.questionId === challengeId || s.questionId?.toString() === challengeId);
+            const attempts = submission?.attempts || 0;
 
             return (
               <div
@@ -144,11 +143,11 @@ export const ChallengeList = ({
                 {/* Header Info */}
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-3">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border capitalize ${getDifficultyColor(challenge.difficulty)}`}>
-                      {challenge.difficulty}
-                    </span>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${getCategoryColor(category)}`}>
                       {category}
+                    </span>
+                    <span className="text-[10px] font-semibold text-zinc-500 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/50 px-2 py-0.5 rounded-md shadow-sm">
+                      {attempts} {attempts === 1 ? "Attempt" : "Attempts"}
                     </span>
                   </div>
 

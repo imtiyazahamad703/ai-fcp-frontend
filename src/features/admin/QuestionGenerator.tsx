@@ -115,13 +115,6 @@ export const QuestionGenerator = () => {
         <div className="border border-[var(--color-border)] rounded-[var(--radius-md)] overflow-hidden">
           <div className="bg-[var(--color-bg-hover)] px-4 py-3 border-b border-[var(--color-border)] flex justify-between items-center">
             <h4 className="font-medium text-[var(--color-text-primary)]">Preview: {generatedQuestion.title}</h4>
-            <span className={`text-xs px-2 py-1 rounded-full uppercase font-bold tracking-wider ${
-              generatedQuestion.difficulty === 'easy' ? 'bg-green-500/20 text-green-400' :
-              generatedQuestion.difficulty === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-              'bg-red-500/20 text-red-400'
-            }`}>
-              {generatedQuestion.difficulty}
-            </span>
           </div>
           
           <div className="p-4 bg-[var(--color-bg-base)] max-h-96 overflow-y-auto">

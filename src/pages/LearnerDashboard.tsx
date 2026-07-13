@@ -82,6 +82,7 @@ const LearnerDashboard = () => {
               <ChallengeList
                 challenges={questions}
                 completedIds={completedIds}
+                submissions={submissions}
                 onSelectChallenge={(challenge) => navigate(`/workspace/${challenge._id}`)}
               />
             )}

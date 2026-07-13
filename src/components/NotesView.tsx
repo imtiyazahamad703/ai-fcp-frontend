@@ -121,19 +121,6 @@ export const NotesView = ({
 
   const activeChallenge = challenges.find(c => c._id === selectedChallengeId);
 
-  const getDifficultyColor = (diff: string) => {
-    switch (diff) {
-      case "easy":
-        return "text-green-600 bg-green-50 dark:bg-green-950/20 dark:text-green-400 border border-green-200/50 dark:border-green-800/30";
-      case "medium":
-        return "text-amber-600 bg-amber-50 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-200/50 dark:border-amber-800/30";
-      case "hard":
-        return "text-red-600 bg-red-50 dark:bg-red-950/20 dark:text-red-400 border border-red-200/50 dark:border-red-800/30";
-      default:
-        return "text-zinc-600 bg-zinc-50 dark:bg-zinc-900 border border-zinc-200";
-    }
-  };
-
   // Simple and robust client-side custom renderer to avoid installing extra dependencies
   const renderSimpleMarkdown = (text: string) => {
     if (!text) return <p className="text-zinc-400 dark:text-zinc-500 italic">No content available.</p>;
@@ -350,10 +337,7 @@ export const NotesView = ({
                     }`}
                   >
                     <div className="flex-1 min-w-0 pr-2">
-                      <div className="flex items-center space-x-1.5 mb-1 flex-wrap gap-y-1">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${getDifficultyColor(c.difficulty)} uppercase tracking-wider`}>
-                          {c.difficulty}
-                        </span>
+                      <div className="flex items-center gap-2 mb-2">
                         {hasNotes && (
                           <span className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 dark:text-indigo-400 dark:bg-indigo-950/40 px-1.5 py-0.5 rounded border border-indigo-100/30 dark:border-indigo-900/20 flex items-center space-x-1">
                             <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse" />

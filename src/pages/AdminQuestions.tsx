@@ -99,13 +99,6 @@ const AdminQuestions = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-[var(--color-text-secondary)] capitalize">{question.type}</span>
                     <span className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-bold tracking-wider ${
-                      question.difficulty === 'easy' ? 'bg-green-500/10 text-green-400' :
-                      question.difficulty === 'medium' ? 'bg-yellow-500/10 text-yellow-400' :
-                      'bg-red-500/10 text-red-400'
-                    }`}>
-                      {question.difficulty}
-                    </span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-bold tracking-wider ${
                       question.status === 'published' ? 'bg-blue-500/10 text-blue-400' : 'bg-gray-500/10 text-gray-400'
                     }`}>
                       {question.status}
@@ -137,7 +130,6 @@ const AdminQuestions = () => {
                   <tr className="bg-[var(--color-bg-hover)] border-b border-[var(--color-border)]">
                     <th className="py-3 px-4 text-xs uppercase font-semibold text-[var(--color-text-secondary)]">Title</th>
                     <th className="py-3 px-4 text-xs uppercase font-semibold text-[var(--color-text-secondary)]">Type</th>
-                    <th className="py-3 px-4 text-xs uppercase font-semibold text-[var(--color-text-secondary)]">Difficulty</th>
                     <th className="py-3 px-4 text-xs uppercase font-semibold text-[var(--color-text-secondary)]">Status</th>
                     <th className="py-3 px-4 text-xs uppercase font-semibold text-[var(--color-text-secondary)] text-right">Actions</th>
                   </tr>
@@ -151,15 +143,6 @@ const AdminQuestions = () => {
                       </td>
                       <td className="py-4 px-4">
                         <span className="text-sm text-[var(--color-text-secondary)] capitalize">{question.type}</span>
-                      </td>
-                      <td className="py-4 px-4">
-                        <span className={`text-xs px-2 py-1 rounded-full uppercase font-bold tracking-wider ${
-                          question.difficulty === 'easy' ? 'bg-green-500/10 text-green-400' :
-                          question.difficulty === 'medium' ? 'bg-yellow-500/10 text-yellow-400' :
-                          'bg-red-500/10 text-red-400'
-                        }`}>
-                          {question.difficulty}
-                        </span>
                       </td>
                       <td className="py-4 px-4">
                         <span className={`text-xs px-2 py-1 rounded-full uppercase font-bold tracking-wider ${

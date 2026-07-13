@@ -404,9 +404,51 @@ const CodeWorkspace = () => {
       spFiles['/index.css'] = `@tailwind base;\n@tailwind components;\n@tailwind utilities;\n\n/* Add your custom CSS here */\n`;
     }
 
+    const mainReactFile = files.find(f => f.filename.endsWith('.tsx'));
+    let reactEntryFile = './App';
+    if (mainReactFile) {
+      let name = mainReactFile.filename.startsWith('/') ? mainReactFile.filename : `/${mainReactFile.filename}`;
+      if (isReact && name.startsWith('/src/')) name = name.replace('/src', '');
+      else if (name.startsWith('/frontend/src/')) name = name.replace('/frontend/src', '');
+      reactEntryFile = '.' + name.replace(/\.tsx$/, '');
+    }
+
     spFiles['/index.tsx'] = `import React from 'react';
 import { createRoot } from 'react-dom/client';
+import axios from 'axios';
 import './index.css';
+
+// Monkey-patch Axios to use our intercepted fetch
+const originalPost = axios.post;
+axios.post = async function(url, data, config) {
+  if (typeof url === 'string' && (url.startsWith('/api/') || url.startsWith('api/'))) {
+    const res = await fetch(url, {
+      method: 'POST',
+      body: typeof data === 'string' ? data : JSON.stringify(data),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    if (!res.ok) {
+      const err = new Error('Request failed with status ' + res.status);
+      err.response = { data: await res.json().catch(() => ({})), status: res.status };
+      throw err;
+    }
+    return { data: await res.json(), status: res.status };
+  }
+  return originalPost.apply(this, arguments);
+};
+const originalGet = axios.get;
+axios.get = async function(url, config) {
+  if (typeof url === 'string' && (url.startsWith('/api/') || url.startsWith('api/'))) {
+    const res = await fetch(url, { method: 'GET' });
+    if (!res.ok) {
+      const err = new Error('Request failed with status ' + res.status);
+      err.response = { data: await res.json().catch(() => ({})), status: res.status };
+      throw err;
+    }
+    return { data: await res.json(), status: res.status };
+  }
+  return originalGet.apply(this, arguments);
+};
 
 // Intercept axios fetch requests for Dynamic Rate limiting or backend services testing
 const originalFetch = window.fetch;
@@ -467,8 +509,8 @@ window.fetch = async function(...args) {
   return originalFetch(...args);
 };
 
-import * as AppModule from './App';
-const AppComp = AppModule.default || Object.values(AppModule)[0] || (() => <div>No valid component exported from App.tsx</div>);
+import * as AppModule from '${reactEntryFile}';
+const AppComp = AppModule.default || Object.values(AppModule)[0] || (() => <div>No valid component exported from ${reactEntryFile}</div>);
 
 const root = createRoot(document.getElementById('root')!);
 root.render(
@@ -515,13 +557,6 @@ root.render(
           <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-800 shrink-0" />
           <span className="text-[11px] md:text-sm font-bold text-zinc-900 dark:text-zinc-50 font-sans overflow-x-auto whitespace-nowrap hide-scrollbar flex-1 max-w-[160px] sm:max-w-xs md:max-w-md">
             {question.title}
-          </span>
-          <span className={`px-1.5 py-0.5 md:px-2 md:py-0.5 rounded text-[8px] md:text-[10px] font-bold uppercase border tracking-wider shrink-0 ${
-            question.difficulty === "easy" ? "bg-green-50 text-green-600 border-green-200" :
-            question.difficulty === "medium" ? "bg-amber-50 text-amber-600 border-amber-200" :
-            "bg-red-50 text-red-600 border-red-200"
-          }`}>
-            {question.difficulty}
           </span>
         </div>
 
