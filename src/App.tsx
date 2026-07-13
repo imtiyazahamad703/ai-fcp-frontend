@@ -13,6 +13,7 @@ import AdminQuestions from './pages/AdminQuestions';
 import AdminQuestionEditor from './pages/AdminQuestionEditor';
 import LearnerDashboard from './pages/LearnerDashboard';
 import CodeWorkspace from './pages/CodeWorkspace';
+import LandingPage from './pages/LandingPage';
 
 function App() {
   const { isAuthenticated, isLoading, user, initialize } = useAuthStore();
@@ -136,9 +137,9 @@ function App() {
           }
         />
 
-        {/* Catch All */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        {/* Landing & Catch All */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );

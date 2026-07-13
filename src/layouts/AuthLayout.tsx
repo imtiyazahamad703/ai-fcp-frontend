@@ -22,14 +22,11 @@ export const AuthLayout = ({ children }: AuthLayoutProps) => {
       <div className="relative z-10 w-full max-w-[400px] flex flex-col items-center">
         {/* Brand Logo */}
         <div className="flex flex-col items-center mb-8 text-center">
-          <div className="mb-4 w-12 h-12 flex items-center justify-center bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-xl shadow-sm">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="16 18 22 12 16 6" />
-              <polyline points="8 6 2 12 8 18" />
-            </svg>
+          <div className="mb-4">
+            <img src="/logos/fcp_logo.png" alt="FCP Logo" className="w-16 h-16 rounded-full object-contain dark:mix-blend-screen shadow-sm" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
-            Welcome to AI-FCP
+            Welcome to FCP
           </h1>
           <p className="text-zinc-500 dark:text-zinc-400 text-sm mt-1">
             Sign in to continue your session

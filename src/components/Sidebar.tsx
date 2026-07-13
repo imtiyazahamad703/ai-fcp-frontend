@@ -132,11 +132,13 @@ export const Sidebar = ({
       {/* Mobile Top Header (only visible on small screen layouts when workspace is not open) */}
       <div className="md:hidden sticky top-0 z-40 flex items-center justify-between bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 px-4 h-14 w-full">
         <div className="flex items-center space-x-2">
-          <div className="p-1.5 bg-indigo-600 rounded-lg text-white">
-            <Code size={18} />
-          </div>
+          <img 
+            src="/logos/fcp_logo.png" 
+            alt="FCP Logo" 
+            className="w-7 h-7 rounded-full object-contain dark:mix-blend-screen" 
+          />
           <span className="text-sm font-bold tracking-tight text-zinc-900 dark:text-zinc-50 font-mono">
-            AI-FCP <span className="text-zinc-400 font-normal">Platform</span>
+            FCP <span className="text-zinc-400 font-normal">Platform</span>
           </span>
         </div>
         <button
@@ -163,13 +165,15 @@ export const Sidebar = ({
       >
         <div className="flex flex-col flex-1 p-5 overflow-y-auto">
           {/* Brand & Logo */}
-          <div className="flex items-center space-x-2.5 mb-6">
-            <div className="p-2 bg-gradient-to-tr from-indigo-500 to-indigo-700 rounded-xl text-white shadow-md shadow-indigo-500/10">
-              <Code size={20} className="animate-pulse" />
-            </div>
+          <div className="flex items-center space-x-3 mb-6">
+            <img 
+              src="/logos/fcp_logo.png" 
+              alt="FCP Logo" 
+              className="w-10 h-10 rounded-full object-contain dark:mix-blend-screen shadow-md" 
+            />
             <div className="flex flex-col justify-center">
               <span className="text-lg font-extrabold tracking-tight text-zinc-900 dark:text-white">
-                AI-FCP <span className="text-zinc-400 font-medium">Platform</span>
+                FCP <span className="text-zinc-400 font-medium">Platform</span>
               </span>
             </div>
           </div>

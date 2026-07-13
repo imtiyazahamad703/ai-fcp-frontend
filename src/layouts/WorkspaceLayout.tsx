@@ -41,7 +41,8 @@ export const WorkspaceLayout = ({
               <path d="M19 12H5M12 19l-7-7 7-7" />
             </svg>
           </button>
-          <span className="workspace-brand gradient-text">AI-FCP</span>
+          <img src="/logos/fcp_logo.png" alt="Logo" className="w-6 h-6 rounded-full object-contain ml-3 mr-2 dark:mix-blend-screen" />
+          <span className="workspace-brand gradient-text">FCP</span>
           {questionId && (
             <span className="workspace-question-id">#{questionId}</span>
           )}
