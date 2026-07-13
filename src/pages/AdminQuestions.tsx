@@ -23,6 +23,7 @@ const AdminQuestions = () => {
   const { questions, setQuestions } = useAdminStore();
   const navigate = useNavigate();
 
+  const [selectedFolderFilter, setSelectedFolderFilter] = useState<string>('All');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -122,12 +123,17 @@ const AdminQuestions = () => {
     setDeleteTarget({ type: 'folder', idOrName: folderName });
   };
 
+  const filteredQuestions = useMemo(() => {
+    if (selectedFolderFilter === 'All') return questions;
+    return questions.filter(q => (q.folder || 'Practice Coding Challenges') === selectedFolderFilter);
+  }, [questions, selectedFolderFilter]);
+
   const paginatedQuestions = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
-    return questions.slice(start, start + itemsPerPage);
-  }, [questions, currentPage]);
+    return filteredQuestions.slice(start, start + itemsPerPage);
+  }, [filteredQuestions, currentPage]);
 
-  const totalPages = Math.ceil(questions.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredQuestions.length / itemsPerPage);
 
   return (
     <AdminLayout>
@@ -164,7 +170,25 @@ const AdminQuestions = () => {
           </Button>
         </div>
       ) : (
-        <div className="bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-[var(--radius-lg)] overflow-hidden shadow-sm">
+        <>
+          {/* Filters Bar */}
+          <div className="flex justify-end mb-4">
+            <select
+              value={selectedFolderFilter}
+              onChange={(e) => {
+                setSelectedFolderFilter(e.target.value);
+                setCurrentPage(1); // Reset to page 1 on filter change
+              }}
+              className="bg-[var(--color-bg-input)] hover:bg-[var(--color-bg-hover)] border border-[var(--color-border-input)] rounded-md px-4 py-2 text-sm font-medium text-[var(--color-text-primary)] outline-none focus:border-[var(--color-primary-500)] focus:ring-1 focus:ring-[var(--color-primary-500)] transition-colors cursor-pointer shadow-sm w-full sm:w-auto"
+            >
+              <option value="All" className="bg-[var(--color-bg-base)] text-[var(--color-text-primary)] py-1">All Folders</option>
+              {folders.map(f => (
+                <option key={f} value={f} className="bg-[var(--color-bg-base)] text-[var(--color-text-primary)] py-1">{f}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-[var(--radius-lg)] overflow-hidden shadow-sm">
           <div className="w-full">
             {/* Mobile Card View */}
             <div className="md:hidden divide-y divide-[var(--color-border)]">
@@ -267,7 +291,7 @@ const AdminQuestions = () => {
           {totalPages > 1 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 sm:px-6 py-4 border-t border-[var(--color-border)] bg-[var(--color-bg-elevated)]">
               <span className="text-xs sm:text-sm text-[var(--color-text-secondary)] text-center sm:text-left">
-                Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, questions.length)} of {questions.length} entries
+                Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredQuestions.length)} of {filteredQuestions.length} entries
               </span>
               <div className="flex gap-2 w-full sm:w-auto justify-center">
                 <Button
@@ -288,6 +312,7 @@ const AdminQuestions = () => {
             </div>
           )}
         </div>
+        </>
       )}
 
       {/* New Folder Modal */}
