@@ -15,6 +15,14 @@ export const adminService = {
   },
 
   /**
+   * Get all distinct question folders.
+   */
+  getFolders: async (): Promise<string[]> => {
+    const response = await api.get<{ folders: string[] }>('/questions/folders');
+    return response.data.folders;
+  },
+
+  /**
    * Create a new admin.
    */
   createAdmin: async (data: IRegisterRequest): Promise<IUser> => {

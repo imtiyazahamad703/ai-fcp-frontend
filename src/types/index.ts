@@ -17,6 +17,7 @@ export interface IQuestion {
   _id?: string;
   title: string;
   description: string;
+  folder: string;
 
   type: 'react' | 'fullstack';
   userPrompt: string;

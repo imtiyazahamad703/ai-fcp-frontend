@@ -66,17 +66,7 @@ export const ChallengeList = ({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[22px] pb-8">
-      {/* Intro Hero Section */}
-      <div className="mb-8 max-w-2xl">
-        <h1 className="text-2xl font-bold text-zinc-950 dark:text-zinc-50 font-sans tracking-tight">
-          Full-Stack Feature Lab
-        </h1>
-        <p className="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
-          Level up by building actual system components, APIs, and responsive React modules inside our live workspace IDE, evaluated in real time by NestJS backend test runners.
-        </p>
-      </div>
-
+    <div className="px-8 pb-8">
       {/* Filter and Search Bar */}
       <div className="flex flex-col md:flex-row gap-3 mb-6 items-center justify-between">
         {/* Search */}

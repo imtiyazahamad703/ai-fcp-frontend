@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { Button } from '../../components/common/Button';
 import { Input } from '../../components/common/Input';
 import { adminService } from '../../services/admin.service';
@@ -14,6 +14,16 @@ export const QuestionGenerator = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [folders, setFolders] = useState<string[]>([]);
+  const [selectedFolder, setSelectedFolder] = useState<string>('leetcode 75 blind questions');
+  const [newFolder, setNewFolder] = useState<string>('');
+
+  useEffect(() => {
+    adminService.getFolders().then(f => {
+      setFolders(f);
+      if (f.length > 0 && !f.includes('leetcode 75 blind questions')) setSelectedFolder(f[0]);
+    }).catch(console.error);
+  }, []);
   
   const { generatedQuestion, setGeneratedQuestion } = useAdminStore();
 
@@ -47,7 +57,11 @@ export const QuestionGenerator = () => {
     setError('');
 
     try {
-      await adminService.saveQuestion(generatedQuestion);
+      const finalFolder = selectedFolder === 'ADD_NEW' ? newFolder : selectedFolder;
+      await adminService.saveQuestion({ 
+        ...generatedQuestion, 
+        folder: finalFolder || 'Uncategorized' 
+      });
       setSuccess('Question saved successfully!');
       setGeneratedQuestion(null);
       setUserPrompt('');
@@ -123,13 +137,42 @@ export const QuestionGenerator = () => {
             </pre>
           </div>
 
-          <div className="p-4 bg-[var(--color-bg-hover)] border-t border-[var(--color-border)] flex flex-col sm:flex-row justify-end gap-3">
-            <Button variant="secondary" onClick={() => setGeneratedQuestion(null)} disabled={isLoading} className="w-full sm:w-auto">
-              Discard
-            </Button>
-            <Button variant="primary" onClick={handleSave} isLoading={isLoading} className="w-full sm:w-auto">
-              Save Question
-            </Button>
+          <div className="p-4 bg-[var(--color-bg-hover)] border-t border-[var(--color-border)] flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <label className="text-sm font-medium text-[var(--color-text-secondary)] whitespace-nowrap">Folder:</label>
+              <select 
+                value={selectedFolder}
+                onChange={(e) => setSelectedFolder(e.target.value)}
+                className="bg-[var(--color-bg-input)] border border-[var(--color-border-input)] rounded-[var(--radius-md)] px-3 py-1.5 text-sm focus:outline-none focus:border-[var(--color-primary-400)] transition-colors text-[var(--color-text-primary)] w-full sm:w-48"
+              >
+                {folders.map(f => (
+                  <option key={f} value={f}>{f}</option>
+                ))}
+                {folders.length === 0 && !folders.includes('leetcode 75 blind questions') && (
+                  <option value="leetcode 75 blind questions">leetcode 75 blind questions</option>
+                )}
+                <option value="ADD_NEW">+ Add New Folder...</option>
+              </select>
+              
+              {selectedFolder === 'ADD_NEW' && (
+                <input 
+                  type="text" 
+                  value={newFolder}
+                  onChange={(e) => setNewFolder(e.target.value)}
+                  placeholder="New folder name"
+                  className="bg-[var(--color-bg-input)] border border-[var(--color-border-input)] rounded-[var(--radius-md)] px-3 py-1.5 text-sm focus:outline-none focus:border-[var(--color-primary-400)] transition-colors text-[var(--color-text-primary)] w-full sm:w-48"
+                />
+              )}
+            </div>
+
+            <div className="flex gap-3 w-full md:w-auto justify-end">
+              <Button variant="secondary" onClick={() => setGeneratedQuestion(null)} disabled={isLoading} className="flex-1 md:flex-none">
+                Discard
+              </Button>
+              <Button variant="primary" onClick={handleSave} isLoading={isLoading} className="flex-1 md:flex-none">
+                Save Question
+              </Button>
+            </div>
           </div>
         </div>
       )}
