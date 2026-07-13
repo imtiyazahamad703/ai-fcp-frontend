@@ -87,16 +87,16 @@ const LearnerDashboard = () => {
               <div className="p-8">
                 <div className="mb-10">
                   <h1 className="text-3xl font-extrabold text-zinc-900 dark:text-white tracking-tight mb-3">
-                    Full-Stack Feature Lab
+                    The Ultimate Coding Practice Platform
                   </h1>
                   <p className="text-base text-zinc-600 dark:text-zinc-400 max-w-3xl leading-relaxed">
-                    Level up by building actual system components, APIs, and responsive React modules inside our live workspace IDE, evaluated in real time by NestJS backend test runners.
+                    Practice Data Structures, algorithms, frontend UIs, and full-stack development all in one place. Write code in our live browser IDE and get instant automated feedback.
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2 mb-6 px-1">
                   <FolderOpen className="w-5 h-5 text-zinc-400 dark:text-zinc-500" />
-                  <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">Your Collections</h2>
+                  <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">Practice Modules</h2>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

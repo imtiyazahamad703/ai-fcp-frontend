@@ -167,12 +167,9 @@ export const Sidebar = ({
             <div className="p-2 bg-gradient-to-tr from-indigo-500 to-indigo-700 rounded-xl text-white shadow-md shadow-indigo-500/10">
               <Code size={20} className="animate-pulse" />
             </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-bold tracking-tight text-zinc-900 dark:text-zinc-50 font-mono">
-                AI-FCP <span className="text-zinc-400 font-normal">Platform</span>
-              </span>
-              <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium tracking-widest uppercase">
-                Interactive Practice
+            <div className="flex flex-col justify-center">
+              <span className="text-lg font-extrabold tracking-tight text-zinc-900 dark:text-white">
+                AI-FCP <span className="text-zinc-400 font-medium">Platform</span>
               </span>
             </div>
           </div>
