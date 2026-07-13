@@ -18,12 +18,12 @@ export const adminService = {
    * Get all distinct question folders.
    */
   getFolders: async (): Promise<string[]> => {
-    const res = await api.get('/questions/folders');
+    const res = await api.get<{ folders: string[] }>('/questions/folders');
     return res.data.folders || [];
   },
 
   async createFolder(name: string): Promise<string> {
-    const res = await api.post('/questions/folders', { name });
+    const res = await api.post<{ name: string }>('/questions/folders', { name });
     return res.data.name;
   },
 
