@@ -14,6 +14,12 @@ import { Button } from '../components/common/Button';
 const AdminQuestions = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [folders, setFolders] = useState<string[]>([]);
+  const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
+  const [isManageFoldersModalOpen, setIsManageFoldersModalOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ type: 'folder' | 'question', idOrName: string } | null>(null);
+  const [newFolderName, setNewFolderName] = useState('');
+  const [questionToMove, setQuestionToMove] = useState<string | null>(null);
   const { questions, setQuestions } = useAdminStore();
   const navigate = useNavigate();
 
@@ -27,8 +33,12 @@ const AdminQuestions = () => {
   const fetchQuestions = async () => {
     setIsLoading(true);
     try {
-      const data = await adminService.getQuestions();
-      setQuestions(data);
+      const [qData, fData] = await Promise.all([
+        adminService.getQuestions(),
+        adminService.getFolders()
+      ]);
+      setQuestions(qData);
+      setFolders(fData);
     } catch (err: any) {
       toast.error(err.message || 'Failed to fetch questions');
       setError(err.message || 'Failed to fetch questions');
@@ -37,15 +47,79 @@ const AdminQuestions = () => {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this question?')) return;
+  const executeDeleteQuestion = async (id: string) => {
     try {
       await adminService.deleteQuestion(id);
       setQuestions(questions.filter(q => q._id !== id));
       toast.success('Question deleted');
     } catch (err: any) {
       toast.error(err.message || 'Failed to delete question');
+    } finally {
+      setDeleteTarget(null);
     }
+  };
+
+  const handleDelete = (id: string) => {
+    setDeleteTarget({ type: 'question', idOrName: id });
+  };
+
+  const handleFolderChange = async (id: string, newFolder: string) => {
+    if (newFolder === 'ADD_NEW') {
+      setQuestionToMove(id);
+      setNewFolderName('');
+      setIsFolderModalOpen(true);
+      return;
+    }
+
+    try {
+      await adminService.updateQuestion(id, { folder: newFolder });
+      setQuestions(questions.map(q => q._id === id ? { ...q, folder: newFolder } : q));
+      toast.success('Question moved to ' + newFolder);
+    } catch (err: any) {
+      toast.error('Failed to move question');
+    }
+  };
+
+  const handleCreateAndMoveFolder = async () => {
+    if (!newFolderName.trim()) return;
+    try {
+      const finalFolder = await adminService.createFolder(newFolderName.trim());
+      setFolders(prev => {
+        if (!prev.includes(finalFolder)) return [...prev, finalFolder];
+        return prev;
+      });
+
+      if (questionToMove) {
+        await adminService.updateQuestion(questionToMove, { folder: finalFolder });
+        setQuestions(questions.map(q => q._id === questionToMove ? { ...q, folder: finalFolder } : q));
+        toast.success('Question moved to ' + finalFolder);
+      } else {
+        toast.success('Folder created successfully');
+      }
+    } catch (err: any) {
+      toast.error('Failed to create/move folder');
+    } finally {
+      setIsFolderModalOpen(false);
+      setQuestionToMove(null);
+    }
+  };
+
+  const executeDeleteFolder = async (folderName: string) => {
+    try {
+      await adminService.deleteFolder(folderName);
+      setFolders(folders.filter(f => f !== folderName));
+      const data = await adminService.getQuestions();
+      setQuestions(data);
+      toast.success('Folder deleted');
+    } catch (err: any) {
+      toast.error('Failed to delete folder');
+    } finally {
+      setDeleteTarget(null);
+    }
+  };
+
+  const handleDeleteFolder = (folderName: string) => {
+    setDeleteTarget({ type: 'folder', idOrName: folderName });
   };
 
   const paginatedQuestions = useMemo(() => {
@@ -64,9 +138,14 @@ const AdminQuestions = () => {
             Review, edit, and publish generated questions
           </p>
         </div>
-        <Button variant="primary" onClick={() => navigate('/admin')} className="w-full sm:w-auto">
-          Generate New
-        </Button>
+        <div className="flex gap-3 w-full sm:w-auto">
+          <Button variant="secondary" onClick={() => setIsManageFoldersModalOpen(true)} className="flex-1 sm:flex-none">
+            Manage Folders
+          </Button>
+          <Button variant="primary" onClick={() => navigate('/admin')} className="flex-1 sm:flex-none">
+            Generate New
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -95,24 +174,23 @@ const AdminQuestions = () => {
                     <div className="font-medium text-[var(--color-text-primary)] mb-1">{question.title}</div>
                     <div className="text-xs text-[var(--color-text-tertiary)] line-clamp-2">{question.userPrompt}</div>
                   </div>
-                  
+
                   <div className="flex justify-between items-center">
                     <span className="text-xs text-[var(--color-text-secondary)] capitalize">{question.type}</span>
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-bold tracking-wider ${
-                      question.status === 'published' ? 'bg-blue-500/10 text-blue-400' : 'bg-gray-500/10 text-gray-400'
-                    }`}>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-bold tracking-wider ${question.status === 'published' ? 'bg-blue-500/10 text-blue-400' : 'bg-gray-500/10 text-gray-400'
+                      }`}>
                       {question.status}
                     </span>
                   </div>
 
                   <div className="flex justify-end gap-2 mt-2 pt-3 border-t border-[var(--color-border)]">
-                    <button 
+                    <button
                       onClick={() => navigate(`/admin/questions/${question._id}`)}
                       className="text-xs px-3 py-1.5 rounded bg-[var(--color-primary-500)]/10 text-[var(--color-primary-400)] hover:bg-[var(--color-primary-500)]/20 transition-colors flex-1 font-semibold"
                     >
                       Review
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleDelete(question._id!)}
                       className="text-xs px-3 py-1.5 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors flex-1 font-semibold"
                     >
@@ -129,9 +207,10 @@ const AdminQuestions = () => {
                 <thead>
                   <tr className="bg-[var(--color-bg-hover)] border-b border-[var(--color-border)]">
                     <th className="py-3 px-4 text-xs uppercase font-semibold text-[var(--color-text-secondary)]">Title</th>
-                    <th className="py-3 px-4 text-xs uppercase font-semibold text-[var(--color-text-secondary)]">Type</th>
-                    <th className="py-3 px-4 text-xs uppercase font-semibold text-[var(--color-text-secondary)]">Status</th>
-                    <th className="py-3 px-4 text-xs uppercase font-semibold text-[var(--color-text-secondary)] text-right">Actions</th>
+                    <th className="py-3 px-4 text-xs uppercase font-semibold text-[var(--color-text-secondary)] text-center">Folder</th>
+                    <th className="py-3 px-4 text-xs uppercase font-semibold text-[var(--color-text-secondary)] text-center">Type</th>
+                    <th className="py-3 px-4 text-xs uppercase font-semibold text-[var(--color-text-secondary)] text-center">Status</th>
+                    <th className="py-3 px-4 text-xs uppercase font-semibold text-[var(--color-text-secondary)] text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[var(--color-border)]">
@@ -141,25 +220,36 @@ const AdminQuestions = () => {
                         <div className="font-medium text-[var(--color-text-primary)]">{question.title}</div>
                         <div className="text-xs text-[var(--color-text-tertiary)] truncate w-64">{question.userPrompt}</div>
                       </td>
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4 text-center">
+                        <select
+                          value={question.folder || 'Practice Coding Challenges'}
+                          onChange={(e) => handleFolderChange(question._id!, e.target.value)}
+                          className="bg-[var(--color-bg-input)] hover:bg-[var(--color-bg-hover)] border border-[var(--color-border-input)] rounded-md pl-2 pr-6 py-1.5 text-xs font-medium text-[var(--color-text-primary)] outline-none focus:border-[var(--color-primary-500)] focus:ring-1 focus:ring-[var(--color-primary-500)] transition-colors cursor-pointer shadow-sm w-full max-w-[160px] mx-auto block"
+                        >
+                          {folders.map(f => (
+                            <option key={f} value={f} className="bg-[var(--color-bg-base)] text-[var(--color-text-primary)] py-1">{f}</option>
+                          ))}
+                          <option value="ADD_NEW" className="bg-[var(--color-bg-base)] text-[var(--color-text-primary)] font-bold border-t border-[var(--color-border)]">+ Add New Folder...</option>
+                        </select>
+                      </td>
+                      <td className="py-4 px-4 text-center">
                         <span className="text-sm text-[var(--color-text-secondary)] capitalize">{question.type}</span>
                       </td>
-                      <td className="py-4 px-4">
-                        <span className={`text-xs px-2 py-1 rounded-full uppercase font-bold tracking-wider ${
-                          question.status === 'published' ? 'bg-blue-500/10 text-blue-400' : 'bg-gray-500/10 text-gray-400'
-                        }`}>
+                      <td className="py-4 px-4 text-center">
+                        <span className={`text-xs px-2 py-1 rounded-full uppercase font-bold tracking-wider ${question.status === 'published' ? 'bg-blue-500/10 text-blue-400' : 'bg-gray-500/10 text-gray-400'
+                          }`}>
                           {question.status}
                         </span>
                       </td>
-                      <td className="py-4 px-4 text-right">
-                        <div className="flex justify-end gap-2 transition-opacity">
-                          <button 
+                      <td className="py-4 px-4 text-center">
+                        <div className="flex justify-center gap-2 transition-opacity">
+                          <button
                             onClick={() => navigate(`/admin/questions/${question._id}`)}
                             className="text-sm px-3 py-1.5 rounded bg-[var(--color-primary-500)]/10 text-[var(--color-primary-400)] hover:bg-[var(--color-primary-500)]/20 transition-colors"
                           >
                             Review
                           </button>
-                          <button 
+                          <button
                             onClick={() => handleDelete(question._id!)}
                             className="text-sm px-3 py-1.5 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-colors"
                           >
@@ -173,22 +263,22 @@ const AdminQuestions = () => {
               </table>
             </div>
           </div>
-          
+
           {totalPages > 1 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 sm:px-6 py-4 border-t border-[var(--color-border)] bg-[var(--color-bg-elevated)]">
               <span className="text-xs sm:text-sm text-[var(--color-text-secondary)] text-center sm:text-left">
                 Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, questions.length)} of {questions.length} entries
               </span>
               <div className="flex gap-2 w-full sm:w-auto justify-center">
-                <Button 
-                  variant="secondary" 
+                <Button
+                  variant="secondary"
                   onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                   disabled={currentPage === 1}
                 >
                   Previous
                 </Button>
-                <Button 
-                  variant="secondary" 
+                <Button
+                  variant="secondary"
                   onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
                   disabled={currentPage === totalPages}
                 >
@@ -197,6 +287,112 @@ const AdminQuestions = () => {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* New Folder Modal */}
+      {isFolderModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-[var(--radius-lg)] p-6 w-full max-w-md shadow-xl animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-4">Create New Folder</h3>
+            <input
+              type="text"
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              placeholder="Enter folder name..."
+              className="w-full bg-[var(--color-bg-input)] border border-[var(--color-border-input)] rounded-[var(--radius-md)] px-4 py-2 mb-6 text-[var(--color-text-primary)] focus:outline-none focus:border-[var(--color-primary-500)] focus:ring-1 focus:ring-[var(--color-primary-500)]"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleCreateAndMoveFolder();
+                if (e.key === 'Escape') { setIsFolderModalOpen(false); setQuestionToMove(null); }
+              }}
+            />
+            <div className="flex gap-3 justify-end">
+              <Button variant="secondary" onClick={() => { setIsFolderModalOpen(false); setQuestionToMove(null); }}>
+                Cancel
+              </Button>
+              <Button variant="primary" onClick={handleCreateAndMoveFolder} disabled={!newFolderName.trim()}>
+                {questionToMove ? 'Create & Move' : 'Create Folder'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manage Folders Modal */}
+      {isManageFoldersModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-[var(--radius-lg)] p-6 w-full max-w-md shadow-xl animate-in fade-in zoom-in-95 duration-200 flex flex-col max-h-[80vh]">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-[var(--color-text-primary)]">Manage Folders</h3>
+              <button onClick={() => setIsManageFoldersModalOpen(false)} className="text-[var(--color-text-tertiary)] hover:text-[var(--color-text-primary)]">
+                ✕
+              </button>
+            </div>
+
+            {folders.length === 0 ? (
+              <p className="text-sm text-[var(--color-text-secondary)] text-center py-4">No folders created yet.</p>
+            ) : (
+              <div className="overflow-y-auto flex-1 pr-2 space-y-2">
+                {folders.map(folder => (
+                  <div key={folder} className="flex justify-between items-center bg-[var(--color-bg-hover)] px-4 py-3 rounded-lg border border-[var(--color-border)]">
+                    <span className="text-sm font-medium text-[var(--color-text-primary)]">{folder}</span>
+                    <button
+                      onClick={() => handleDeleteFolder(folder)}
+                      className="text-xs text-red-400 hover:text-red-300 bg-red-500/10 px-2 py-1 rounded"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-6 flex justify-between items-center">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setIsManageFoldersModalOpen(false);
+                  setQuestionToMove(null);
+                  setNewFolderName('');
+                  setIsFolderModalOpen(true);
+                }}
+                className="px-3 py-1.5 text-sm"
+              >
+                + Add New Folder
+              </Button>
+              <Button variant="secondary" onClick={() => setIsManageFoldersModalOpen(false)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-[var(--color-bg-elevated)] border border-[var(--color-border)] rounded-[var(--radius-lg)] p-5 w-full max-w-sm shadow-xl animate-in fade-in zoom-in-95 duration-200">
+            <h3 className="text-lg font-bold text-[var(--color-text-primary)] mb-2">
+              Delete {deleteTarget.type === 'folder' ? 'Folder' : 'Question'}?
+            </h3>
+            <p className="text-sm text-[var(--color-text-secondary)] mb-6">
+              {deleteTarget.type === 'folder'
+                ? `"${deleteTarget.idOrName}" will be removed. Questions move to Practice Coding Challenges.`
+                : "This action cannot be undone."}
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button variant="secondary" onClick={() => setDeleteTarget(null)}>
+                Cancel
+              </Button>
+              <button
+                onClick={() => deleteTarget.type === 'folder' ? executeDeleteFolder(deleteTarget.idOrName) : executeDeleteQuestion(deleteTarget.idOrName)}
+                className="px-4 py-1.5 text-sm bg-red-500 hover:bg-red-600 text-white font-medium rounded-md transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </AdminLayout>

@@ -163,26 +163,26 @@ const AdminUsers = () => {
               <div className="p-8 text-center text-[var(--color-text-tertiary)]">No other administrators found.</div>
             ) : (
               paginatedAdmins.map((admin) => (
-                <div key={admin._id} className="p-4 flex flex-col gap-4 hover:bg-[var(--color-bg-hover)] transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-[var(--color-primary-500)]/20 text-[var(--color-primary-400)] flex items-center justify-center font-bold">
+                <div key={admin._id} className="p-4 flex items-center justify-between gap-2 hover:bg-[var(--color-bg-hover)] transition-colors">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 shrink-0 rounded-full bg-[var(--color-primary-500)]/20 text-[var(--color-primary-400)] flex items-center justify-center font-bold">
                       {admin.name.charAt(0).toUpperCase()}
                     </div>
-                    <div>
-                      <p className="font-medium text-[var(--color-text-primary)]">{admin.name}</p>
-                      <p className="text-xs text-[var(--color-text-tertiary)]">{admin.email}</p>
+                    <div className="min-w-0">
+                      <p className="font-medium text-[var(--color-text-primary)] truncate">{admin.name}</p>
+                      <p className="text-xs text-[var(--color-text-tertiary)] truncate">{admin.email}</p>
                     </div>
                   </div>
-                  <div className="flex justify-between items-center mt-2 pt-3 border-t border-[var(--color-border)]">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-[var(--color-accent-500)]/10 text-[var(--color-accent-400)] border border-[var(--color-accent-500)]/20">
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-[var(--color-accent-500)]/10 text-[var(--color-accent-400)] border border-[var(--color-accent-500)]/20">
                       Admin
                     </span>
                     <button
                       onClick={() => handleDelete(admin._id)}
-                      className="text-red-400 hover:text-red-300 px-3 py-1.5 hover:bg-red-400/10 rounded-lg transition-colors inline-flex items-center justify-center font-semibold text-xs gap-1.5"
+                      className="text-red-400 hover:text-red-300 p-2 hover:bg-red-400/10 rounded-lg transition-colors inline-flex items-center justify-center"
+                      title="Delete"
                     >
-                      <Trash2 size={14} />
-                      Delete
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 </div>

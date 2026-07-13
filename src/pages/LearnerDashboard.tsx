@@ -12,6 +12,7 @@ const LearnerDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'challenges' | 'dashboard' | 'notes'>('challenges');
   const [selectedFolder, setSelectedFolder] = useState<string | null>(null);
+  const [folders, setFolders] = useState<string[]>([]);
   const [questions, setQuestions] = useState<IQuestion[]>([]);
   const [completedIds, setCompletedIds] = useState<string[]>([]);
   const [submissions, setSubmissions] = useState<any[]>([]);
@@ -39,11 +40,13 @@ const LearnerDashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [qData, profile, subs] = await Promise.all([
+        const [fData, qData, profile, subs] = await Promise.all([
+          learnerService.getFolders(),
           learnerService.getPublishedQuestions(),
           learnerService.getProfile(),
           learnerService.getSubmissions()
         ]);
+        setFolders(fData);
         setQuestions(qData);
         setCompletedIds(profile.completedQuestions || []);
         setSubmissions(subs || []);
@@ -97,22 +100,22 @@ const LearnerDashboard = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {Array.from(new Set(questions.map(q => q.folder || 'Uncategorized'))).map(folder => {
-                    const folderQuestions = questions.filter(q => (q.folder || 'Uncategorized') === folder);
+                  {folders.map(folder => {
+                    const folderQuestions = questions.filter(q => (q.folder || 'Practice Coding Challenges') === folder);
                     const totalCount = folderQuestions.length;
                     const completedCount = folderQuestions.filter(q => completedIds.includes(q._id!)).length;
-                    
+
                     const progressPercentage = totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
 
                     return (
-                      <div 
-                        key={folder} 
+                      <div
+                        key={folder}
                         onClick={() => setSelectedFolder(folder)}
                         className="group relative cursor-pointer overflow-hidden rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
                       >
                         {/* Decorative background gradient */}
                         <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 dark:from-indigo-500/5 dark:to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                        
+
                         <div className="relative z-10 flex flex-col items-start w-full">
                           <div className="w-12 h-12 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 border border-indigo-100 dark:border-indigo-500/20">
                             <Layers className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
@@ -120,7 +123,7 @@ const LearnerDashboard = () => {
                           <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-4 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors capitalize">
                             {folder}
                           </h3>
-                          
+
                           <div className="w-full mt-auto">
                             <div className="flex justify-between items-center mb-2">
                               <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
@@ -131,8 +134,8 @@ const LearnerDashboard = () => {
                               </span>
                             </div>
                             <div className="w-full bg-zinc-100 dark:bg-zinc-800 rounded-full h-1.5 overflow-hidden">
-                              <div 
-                                className="bg-indigo-500 dark:bg-indigo-400 h-1.5 rounded-full transition-all duration-500" 
+                              <div
+                                className="bg-indigo-500 dark:bg-indigo-400 h-1.5 rounded-full transition-all duration-500"
                                 style={{ width: `${progressPercentage}%` }}
                               />
                             </div>
@@ -147,8 +150,8 @@ const LearnerDashboard = () => {
             {activeTab === 'challenges' && selectedFolder && (
               <div className="flex flex-col h-full">
                 <div className="px-8 pt-8 pb-4">
-                  <button 
-                    onClick={() => setSelectedFolder(null)} 
+                  <button
+                    onClick={() => setSelectedFolder(null)}
                     className="flex items-center gap-2 text-sm font-semibold text-zinc-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition mb-4"
                   >
                     <ArrowLeft className="w-4 h-4" /> Back to Collections
@@ -161,7 +164,7 @@ const LearnerDashboard = () => {
                   </div>
                 </div>
                 <ChallengeList
-                  challenges={questions.filter(q => (q.folder || 'Uncategorized') === selectedFolder)}
+                  challenges={questions.filter(q => (q.folder || 'Practice Coding Challenges') === selectedFolder)}
                   completedIds={completedIds}
                   submissions={submissions}
                   onSelectChallenge={(challenge) => navigate(`/workspace/${challenge._id}`)}

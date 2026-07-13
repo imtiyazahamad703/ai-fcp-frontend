@@ -48,6 +48,14 @@ export const learnerService = {
   },
 
   /**
+   * Get folders for questions
+   */
+  getFolders: async (): Promise<string[]> => {
+    const res = await api.get<{ folders: string[] }>('/questions/folders');
+    return res.data.folders || [];
+  },
+
+  /**
    * Submit code for execution / evaluation against test cases.
    */
   submitExecution: async (
